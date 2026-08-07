@@ -22,6 +22,7 @@
             # conformance and performance test suites
             python3
             goperf # provides benchstat
+            graphviz # pprof renders call graphs through dot
           ];
 
           buildInputs = with pkgs; [

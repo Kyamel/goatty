@@ -121,3 +121,40 @@ func TestDeviationInsertLineGrowsBufferAndUnderflowsCursorReport(t *testing.T) {
 	term.feed("\x1b[6n")
 	assert.Equal(t, "\x1b[65534;1R", term.reply(), "cursor row underflowed")
 }
+
+// Every rune advances the cursor by exactly one column, whatever its display
+// width. Wide characters (CJK, most emoji) should take two cells and combining
+// marks none, so CJK text overlaps the cell to its right and an accent pushes
+// the rest of the line along.
+//
+// MeasuredRune.Width carries the rune's UTF-8 byte length, not its display
+// width, and the buffer ignores it. ucs-detect stops at its entry probe because
+// of this (scripts/ucs-detect.sh), so this test is the regression guard until
+// widths are implemented against wcwidth.
+func TestDeviationEveryRuneOccupiesOneColumn(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  uint16
+	}{
+		{"ascii", "a", 1},
+		{"latin-1 precomposed", "é", 1},
+		{"CJK ideograph", "一", 2},
+		{"emoji", "⌚", 2},
+		{"combining mark", "é", 1},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			term := newTestTerm(t, 20, 6)
+			term.feed(test.input)
+
+			col, _ := term.cursor()
+			assert.Equal(t, uint16(len([]rune(test.input))), col,
+				"cursor advanced one column per rune")
+			if col != test.want {
+				t.Logf("correct width would put the cursor at column %d", test.want)
+			}
+		})
+	}
+}

@@ -16,6 +16,18 @@ esctest:
 esctest-update:
 	./scripts/esctest.sh --update
 
+# Deferred-wrap (Last Column Flag) semantics, which esctest barely covers.
+wraptest:
+	./scripts/wraptest.sh
+
+wraptest-update:
+	./scripts/wraptest.sh --update
+
+# Which Unicode version the character widths agree with. Stops at its entry
+# probe today because every rune is one column wide; see the script.
+ucs-detect:
+	./scripts/ucs-detect.sh
+
 # The parser is an untrusted-input boundary; this looks for panics and hangs.
 fuzz:
 	go test ./internal/app/darktile/termutil -run '^$$' -fuzz FuzzParser -fuzztime 300s
@@ -25,4 +37,18 @@ fuzz:
 bench:
 	go test ./internal/app/darktile/termutil -run '^$$' -bench Parser -benchmem -count=8
 
-.PHONY: default build test esctest esctest-update fuzz bench
+# Where the parse path actually spends its time. WORKLOAD names one of the
+# benchmarks; the profiles stay in .cache so they can be opened again with
+# `go tool pprof -http=: .cache/termutil.test .cache/cpu.prof`.
+WORKLOAD ?= sgr-churn
+profile:
+	@mkdir -p .cache
+	go test ./internal/app/darktile/termutil -run '^$$' \
+		-bench 'Parser/$(WORKLOAD)$$$$' -benchtime 5s \
+		-cpuprofile .cache/cpu.prof -memprofile .cache/mem.prof \
+		-o .cache/termutil.test
+	@echo
+	go tool pprof -top -nodecount=20 .cache/termutil.test .cache/cpu.prof
+
+.PHONY: default build test esctest esctest-update wraptest wraptest-update \
+	ucs-detect fuzz bench profile
