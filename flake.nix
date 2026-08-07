@@ -30,6 +30,7 @@
             gopls
             delve
             goreleaser
+            govulncheck
 
             # conformance and performance test suites
             python3

@@ -8,6 +8,11 @@ build:
 test:
 	go test ./...
 
+# Known CVEs in the dependency tree, filtered down to the ones actually
+# reachable from this code.
+vuln:
+	govulncheck ./...
+
 # Escape sequence conformance against esctest2, ratcheted by a checked-in
 # baseline of known failures.
 esctest:
@@ -58,5 +63,5 @@ profile:
 	@echo
 	go tool pprof -top -nodecount=20 .cache/termutil.test .cache/cpu.prof
 
-.PHONY: default build test esctest esctest-update wraptest wraptest-update \
+.PHONY: default build test vuln esctest esctest-update wraptest wraptest-update \
 	ucs-detect render render-update fuzz bench profile
