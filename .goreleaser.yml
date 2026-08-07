@@ -37,8 +37,8 @@ archives:
     formats: [binary]
     name_template: "{{ .Binary}}-{{ .Os }}-{{ .Arch }}"
 
+# The repository is deliberately not pinned here: GoReleaser infers it from the
+# remote, which is what the owner wants and also lets a fork cut its own
+# releases instead of failing against someone else's repository.
 release:
   prerelease: auto
-  github:
-    owner: liamg
-    name: darktile

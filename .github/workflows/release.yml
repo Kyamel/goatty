@@ -3,6 +3,9 @@ on:
   push:
     tags:
       - v*
+  # A tag is the only other trigger, so without this the release path can never
+  # be exercised without publishing something. Dispatching builds a snapshot.
+  workflow_dispatch:
 
 # Unlike the test workflow this does not build inside the flake devShell: a
 # binary linked there resolves its libraries from /nix/store and would not run
@@ -32,6 +35,6 @@ jobs:
       uses: goreleaser/goreleaser-action@v7
       with:
        version: latest
-       args: release --clean
+       args: ${{ github.event_name == 'workflow_dispatch' && 'release --snapshot --clean' || 'release --clean' }}
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
