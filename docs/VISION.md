@@ -7,8 +7,10 @@ decisions should be measured against. Two companion documents cover the parts
 that need more detail:
 
 - [ROADMAP.md](ROADMAP.md) — the phased plan for getting there.
-- [PROTOCOL.md](PROTOCOL.md) — where the line sits between the terminal and the
-  application, which is the single most consequential design decision here.
+- [PROTOCOL.md](PROTOCOL.md) — the semantic layer: structured objects alongside
+  ANSI, and where the line sits between the terminal and the application. This
+  is the single most consequential design decision here, and the one genuinely
+  novel thing the project is attempting.
 
 ---
 
@@ -178,6 +180,46 @@ Goatty should avoid becoming:
 
 The last one is the easiest to drift into and the hardest to reverse.
 [PROTOCOL.md](PROTOCOL.md) exists to keep that line visible.
+
+---
+
+## Deferred: the transactional terminal
+
+A separate and more radical idea, deliberately parked rather than rejected.
+
+It treats a command not as `command -> stdout/stderr -> exit code` but as a
+**transaction over the environment**:
+
+```text
+Transaction #42
+command: make install
+
+changes:
+  files:      + /usr/local/bin/foo
+              ~ ~/.config/foo/config.toml
+  processes:  + pid 12345
+  env:        PATH changed
+  network:    GET https://...
+```
+
+From which actions follow: undo, rerun, inspect changes, diff the filesystem
+before and after. Roughly *shell + audit log + light sandbox + undo*.
+
+This is a different axis from [PROTOCOL.md](PROTOCOL.md):
+
+```text
+semantic objects      -> the meaning of the output
+transactional model   -> the meaning of the execution's effects
+```
+
+**Why it is deferred:** implementing it generally means sandboxing, namespaces,
+filesystem overlays or snapshots, syscall tracing and child-process
+accounting — deep OS integration, with a different answer on every platform.
+The semantic object protocol is incrementally implementable and just as novel,
+so it goes first.
+
+Revisit once the object protocol has shipped and command blocks exist, since a
+transaction is a natural extension of a command block.
 
 ---
 

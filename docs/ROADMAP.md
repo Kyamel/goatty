@@ -6,6 +6,10 @@ each one is mostly meaningless until the previous one has landed.
 
 This document is expected to change as phases complete.
 
+The semantic layer has a separate, independent path of its own — see the
+incremental steps in [PROTOCOL.md](PROTOCOL.md). It is not blocked on these
+phases, but it gets much cheaper after Phase 2 separates the terminal core.
+
 ---
 
 ## Phase 1 — Understand the current architecture
