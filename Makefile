@@ -28,6 +28,14 @@ wraptest-update:
 ucs-detect:
 	./scripts/ucs-detect.sh
 
+# The only coverage of the renderer. Needs a display, so it runs under Xvfb
+# rather than as a go test.
+render:
+	./scripts/render-golden.sh
+
+render-update:
+	./scripts/render-golden.sh --update
+
 # The parser is an untrusted-input boundary; this looks for panics and hangs.
 fuzz:
 	go test ./internal/app/darktile/termutil -run '^$$' -fuzz FuzzParser -fuzztime 300s
@@ -51,4 +59,4 @@ profile:
 	go tool pprof -top -nodecount=20 .cache/termutil.test .cache/cpu.prof
 
 .PHONY: default build test esctest esctest-update wraptest wraptest-update \
-	ucs-detect fuzz bench profile
+	ucs-detect render render-update fuzz bench profile

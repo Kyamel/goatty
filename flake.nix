@@ -23,6 +23,8 @@
             python3
             goperf # provides benchstat
             graphviz # pprof renders call graphs through dot
+            xvfb-run # render goldens need a display
+            imagemagick # and a way to diff the screenshots
           ];
 
           buildInputs = with pkgs; [
