@@ -121,18 +121,24 @@ trap 'rm -rf "$workdir"' EXIT
 
 mkdir -p "$OUT_DIR" "$GOLDEN_DIR"
 
+# Two runs at once write the same screenshot paths and delete each other's
+# output, which shows up as "no screenshot produced" rather than as a diff.
+exec 9>"$OUT_DIR/.lock"
+if ! flock -n 9; then
+    echo "waiting for another render run to finish..." >&2
+    flock 9
+fi
+
 binary="$workdir/darktile"
 go build -o "$binary" ./cmd/darktile
 
-# A config or theme in the real home would change what is drawn, and ebiten
-# from v2.9 on loads libGL with dlopen rather than linking it.
+# A config or theme in the real home would change what is drawn. HOME moves
+# too, so LD_LIBRARY_PATH has to survive it: ebiten dlopens libGL, which the
+# devShell puts there.
 export XDG_CONFIG_HOME="$workdir/config"
 export HOME="$workdir/home"
 export ENV=/dev/null
 mkdir -p "$XDG_CONFIG_HOME" "$HOME"
-if libgl=$(nix eval --raw nixpkgs#libGL.outPath 2>/dev/null); then
-    export LD_LIBRARY_PATH="$libgl/lib:${LD_LIBRARY_PATH:-}"
-fi
 
 failed=0
 changed=()
@@ -142,6 +148,11 @@ for scene in "${scenes[@]}"; do
     {
         echo '#!/bin/sh'
         echo "printf '\033[?25l'"
+        # The window is created at a default size and resized once the real one
+        # is known, which reflows the buffer. A scene that prints into that gap
+        # races the resize and lands on a different scroll offset, so wait it
+        # out before emitting anything.
+        echo "sleep 1"
         scene_body "$scene"
         # Outlives the screenshot, then lets the terminal close on its own.
         echo "sleep $((SCREENSHOT_MS / 1000 + 3))"
@@ -178,9 +189,14 @@ for scene in "${scenes[@]}"; do
     fi
 
     diff_image="$OUT_DIR/$scene.diff.png"
-    pixels=$(compare -metric AE "$golden" "$shot" "$diff_image" 2>&1 || true)
-    pixels=${pixels%%.*}
-    pixels=${pixels%% *}
+    # Not `compare -metric AE`: under an HDRI build that returns a fractional
+    # error, so a handful of changed pixels reads as 0.93 and any truncation to
+    # an integer silently becomes "identical". This counts pixels where some
+    # channel differs at all, as an integer.
+    pixels=$(magick "$golden" "$shot" -compose difference -composite \
+        -separate -evaluate-sequence max -threshold 0 \
+        -format '%[fx:int(mean*w*h+0.5)]' info: 2>/dev/null || true)
+    compare -metric AE "$golden" "$shot" "$diff_image" >/dev/null 2>&1 || true
 
     if [[ ! "$pixels" =~ ^[0-9]+$ ]]; then
         echo "FAIL $scene: could not compare (image sizes differ?)" >&2

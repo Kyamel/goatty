@@ -9,7 +9,19 @@
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
     in
     {
-      devShells = forAllSystems (pkgs: {
+      devShells = forAllSystems (pkgs:
+        let
+          graphicsLibs = with pkgs; [
+            libGL
+            libx11
+            libxcursor
+            libxi
+            libxinerama
+            libxrandr
+            libxxf86vm
+          ];
+        in
+        {
         default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
             go
@@ -25,17 +37,16 @@
             graphviz # pprof renders call graphs through dot
             xvfb-run # render goldens need a display
             imagemagick # and a way to diff the screenshots
+            util-linux # flock, so two render runs cannot stomp each other
           ];
 
-          buildInputs = with pkgs; [
-            libGL
-            libx11
-            libxcursor
-            libxi
-            libxinerama
-            libxrandr
-            libxxf86vm
-          ];
+          buildInputs = graphicsLibs;
+
+          # ebiten from v2.9 on resolves libGL with dlopen instead of linking
+          # it, so having these as buildInputs is not enough to run anything.
+          shellHook = ''
+            export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath graphicsLibs}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          '';
         };
       });
     };
