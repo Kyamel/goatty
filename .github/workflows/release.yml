@@ -136,5 +136,6 @@ jobs:
           # repository from.
           GH_REPO: ${{ github.repository }}
         run: |
-          sha256sum goatty-darwin-* > goatty_macos_checksums.txt
-          gh release upload "$GITHUB_REF_NAME" goatty-darwin-* goatty_macos_checksums.txt
+          gh release download "$GITHUB_REF_NAME" --pattern goatty_checksums.txt
+          sha256sum goatty-darwin-* >> goatty_checksums.txt
+          gh release upload "$GITHUB_REF_NAME" goatty-darwin-* goatty_checksums.txt --clobber
