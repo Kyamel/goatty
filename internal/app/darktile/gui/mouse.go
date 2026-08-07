@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/liamg/darktile/internal/app/darktile/hinters"
-	"github.com/liamg/darktile/internal/app/darktile/termutil"
+	"github.com/kyamel/goatty/internal/app/darktile/hinters"
+	"github.com/kyamel/goatty/internal/app/darktile/termutil"
 )
 
 // time allowed between mouse clicks to chain them into e.g. double-click
@@ -15,13 +15,13 @@ const clickChainWindowMS = 500
 // max duration of a click before it is counted as a drag
 const clickMaxDuration = 100
 
-func (g *GUI) handleMouse() error {
+func (g *GUI) handleMouse(b *termutil.Buffer) error {
 
 	_, scrollY := ebiten.Wheel()
 	if scrollY < 0 {
-		g.terminal.GetActiveBuffer().ScrollDown(5)
+		b.ScrollDown(5)
 	} else if scrollY > 0 {
-		g.terminal.GetActiveBuffer().ScrollUp(5)
+		b.ScrollUp(5)
 	}
 
 	x, y := ebiten.CursorPosition()
@@ -30,7 +30,7 @@ func (g *GUI) handleMouse() error {
 	var moved bool
 
 	if col != int(g.mousePos.Col) || line != int(g.mousePos.Line) {
-		if col >= 0 && col < int(g.terminal.GetActiveBuffer().ViewWidth()) && line >= 0 && line < int(g.terminal.GetActiveBuffer().ViewHeight()) {
+		if col >= 0 && col < int(b.ViewWidth()) && line >= 0 && line < int(b.ViewHeight()) {
 			// mouse moved!
 			moved = true
 			g.mousePos = termutil.Position{
@@ -38,7 +38,7 @@ func (g *GUI) handleMouse() error {
 				Line: uint64(line),
 			}
 			if !ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-				if err := g.handleMouseMove(g.mousePos); err != nil {
+				if err := g.handleMouseMove(b, g.mousePos); err != nil {
 					return err
 				}
 			}
@@ -86,7 +86,7 @@ func (g *GUI) handleMouse() error {
 			if g.mouseDrag {
 
 				// update selection end
-				g.terminal.GetActiveBuffer().SetSelectionEnd(termutil.Position{
+				b.SetSelectionEnd(termutil.Position{
 					Line: uint64(line),
 					Col:  uint16(col),
 				})
@@ -103,7 +103,7 @@ func (g *GUI) handleMouse() error {
 
 			g.lastClick = time.Now()
 
-			handled, err := g.handleClick(g.clickCount, x, y)
+			handled, err := g.handleClick(b, g.clickCount, x, y)
 			if err != nil {
 				return err
 			}
@@ -116,7 +116,7 @@ func (g *GUI) handleMouse() error {
 			col := x / g.fontManager.CharSize().X
 			line := y / g.fontManager.CharSize().Y
 
-			g.terminal.GetActiveBuffer().SetSelectionStart(termutil.Position{
+			b.SetSelectionStart(termutil.Position{
 				Line: uint64(line),
 				Col:  uint16(col),
 			})
@@ -142,10 +142,10 @@ func (g *GUI) clearHinters() error {
 }
 
 // mouse moved to cell (not during click + drag)
-func (g *GUI) handleMouseMove(pos termutil.Position) error {
+func (g *GUI) handleMouseMove(b *termutil.Buffer, pos termutil.Position) error {
 
 	// start uses raw coords
-	start, _, text, index, ok := g.terminal.GetActiveBuffer().GetBoundedTextAtPosition(pos)
+	start, _, text, index, ok := b.GetBoundedTextAtPosition(pos)
 	if !ok {
 		g.clearHinters()
 		return nil
@@ -159,15 +159,15 @@ func (g *GUI) handleMouseMove(pos termutil.Position) error {
 
 			newStartX := int(start.Col) + offset
 			newStartY := start.Line
-			for newStartX >= int(g.terminal.GetActiveBuffer().ViewWidth()) {
-				newStartX -= int(g.terminal.GetActiveBuffer().ViewWidth())
+			for newStartX >= int(b.ViewWidth()) {
+				newStartX -= int(b.ViewWidth())
 				newStartY++
 			}
 
 			newEndX := newStartX + length - 1
 			newEndY := newStartY
-			for newEndX > int(g.terminal.GetActiveBuffer().ViewWidth()) {
-				newEndX -= int(g.terminal.GetActiveBuffer().ViewWidth())
+			for newEndX > int(b.ViewWidth()) {
+				newEndX -= int(b.ViewWidth())
 				newEndY++
 			}
 
@@ -208,7 +208,7 @@ func WithHinter(h hinters.Hinter) func(g *GUI) error {
 	}
 }
 
-func (g *GUI) handleClick(clickCount, x, y int) (bool, error) {
+func (g *GUI) handleClick(b *termutil.Buffer, clickCount, x, y int) (bool, error) {
 
 	switch clickCount {
 	case 1: // single click
@@ -217,16 +217,16 @@ func (g *GUI) handleClick(clickCount, x, y int) (bool, error) {
 				g.hinters[g.activeHinter].Click(g)
 			}
 		} else {
-			g.terminal.GetActiveBuffer().ClearSelection()
+			b.ClearSelection()
 		}
 
 	case 2: //double click
 		col := uint16(x / g.fontManager.CharSize().X)
 		line := uint64(y / g.fontManager.CharSize().Y)
-		g.terminal.GetActiveBuffer().SelectWordAt(termutil.Position{Col: col, Line: line}, wordMatcher)
+		b.SelectWordAt(termutil.Position{Col: col, Line: line}, wordMatcher)
 		return true, nil
 	default: // triple click (or more!)
-		g.terminal.GetActiveBuffer().ExtendSelectionToEntireLines()
+		b.ExtendSelectionToEntireLines()
 		return true, nil
 	}
 

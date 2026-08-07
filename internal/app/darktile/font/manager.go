@@ -6,7 +6,7 @@ import (
 	"math"
 	"os"
 
-	"github.com/liamg/darktile/internal/app/darktile/packed"
+	"github.com/kyamel/goatty/internal/app/darktile/packed"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 )

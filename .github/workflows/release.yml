@@ -58,7 +58,7 @@ jobs:
           mkdir -p dist
           go test ./...
           go build -trimpath \
-            -ldflags="-s -w -X github.com/liamg/darktile/internal/app/darktile/version.Version=$version" \
+            -ldflags="-s -w -X github.com/kyamel/goatty/internal/app/darktile/version.Version=$version" \
             -o "dist/darktile-darwin-${{ matrix.arch }}" ./cmd/darktile
           go build -trimpath -o dist/darktile-headless ./cmd/darktile-headless
           "dist/darktile-darwin-${{ matrix.arch }}" --version

@@ -4,18 +4,19 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text"
-	"github.com/liamg/darktile/internal/app/darktile/termutil"
+	"github.com/kyamel/goatty/internal/app/darktile/termutil"
 )
 
 func (r *Render) drawCursor() {
 	//draw cursor
-	if !r.buffer.IsCursorVisible() {
+	cursor := r.frame.Cursor
+	if !cursor.Visible {
 		return
 	}
 
-	pixelX := float64(int(r.buffer.CursorColumn()) * r.font.CellSize.X)
-	pixelY := float64(int(r.buffer.CursorLine()) * r.font.CellSize.Y)
-	cell := r.buffer.GetCell(r.buffer.CursorColumn(), r.buffer.CursorLine())
+	pixelX := float64(int(cursor.Col) * r.font.CellSize.X)
+	pixelY := float64(int(cursor.Line) * r.font.CellSize.Y)
+	cell := r.frame.Cell(cursor.Col, cursor.Line)
 
 	useFace := r.font.Regular
 	if cell != nil {
@@ -32,17 +33,17 @@ func (r *Render) drawCursor() {
 
 	// empty rect without focus
 	if !ebiten.IsFocused() {
-		ebitenutil.DrawRect(r.frame, pixelX, pixelY, pixelW, pixelH, r.theme.CursorBackground())
-		ebitenutil.DrawRect(r.frame, pixelX+1, pixelY+1, pixelW-2, pixelH-2, r.theme.CursorForeground())
+		ebitenutil.DrawRect(r.canvas, pixelX, pixelY, pixelW, pixelH, r.frame.Colours.CursorBackground)
+		ebitenutil.DrawRect(r.canvas, pixelX+1, pixelY+1, pixelW-2, pixelH-2, r.frame.Colours.CursorForeground)
 		return
 	}
 
 	// draw the cursor shape
-	switch r.buffer.GetCursorShape() {
+	switch cursor.Shape {
 	case termutil.CursorShapeBlinkingBar, termutil.CursorShapeSteadyBar:
-		ebitenutil.DrawRect(r.frame, pixelX, pixelY, 2, pixelH, r.theme.CursorBackground())
+		ebitenutil.DrawRect(r.canvas, pixelX, pixelY, 2, pixelH, r.frame.Colours.CursorBackground)
 	case termutil.CursorShapeBlinkingUnderline, termutil.CursorShapeSteadyUnderline:
-		ebitenutil.DrawRect(r.frame, pixelX, pixelY+pixelH-2, pixelW, 2, r.theme.CursorBackground())
+		ebitenutil.DrawRect(r.canvas, pixelX, pixelY+pixelH-2, pixelW, 2, r.frame.Colours.CursorBackground)
 	default:
 		// draw a custom cursor if we have one and there are no characters in the way
 		if r.cursorImage != nil && (cell == nil || cell.Rune().Rune == 0) {
@@ -53,15 +54,15 @@ func (r *Render) drawCursor() {
 			offsetY := (float64(r.font.CellSize.Y) - actualHeight) / 2
 			opt.GeoM.Scale(ratio, ratio)
 			opt.GeoM.Translate(pixelX, pixelY+offsetY)
-			r.frame.DrawImage(r.cursorImage, opt)
+			r.canvas.DrawImage(r.cursorImage, opt)
 			return
 		}
 
-		ebitenutil.DrawRect(r.frame, pixelX, pixelY, pixelW, pixelH, r.theme.CursorBackground())
+		ebitenutil.DrawRect(r.canvas, pixelX, pixelY, pixelW, pixelH, r.frame.Colours.CursorBackground)
 
 		// we've drawn over the cell contents, so we need to draw it again in the cursor colours
 		if cell != nil && cell.Rune().Rune > 0 {
-			text.Draw(r.frame, string(cell.Rune().Rune), useFace, int(pixelX), int(pixelY)+r.font.DotDepth, r.theme.CursorForeground())
+			text.Draw(r.canvas, string(cell.Rune().Rune), useFace, int(pixelX), int(pixelY)+r.font.DotDepth, r.frame.Colours.CursorForeground)
 		}
 	}
 }

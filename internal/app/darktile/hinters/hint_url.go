@@ -3,7 +3,7 @@ package hinters
 import (
 	"regexp"
 
-	"github.com/liamg/darktile/internal/app/darktile/termutil"
+	"github.com/kyamel/goatty/internal/app/darktile/termutil"
 	"github.com/skratchdot/open-golang/open"
 	"mvdan.cc/xurls/v2"
 )

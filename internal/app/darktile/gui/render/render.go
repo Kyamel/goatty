@@ -4,18 +4,19 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/liamg/darktile/internal/app/darktile/font"
-	"github.com/liamg/darktile/internal/app/darktile/gui/popup"
-	"github.com/liamg/darktile/internal/app/darktile/termutil"
+	"github.com/kyamel/goatty/internal/app/darktile/font"
+	"github.com/kyamel/goatty/internal/app/darktile/gui/popup"
+	"github.com/kyamel/goatty/internal/app/darktile/termutil"
 	imagefont "golang.org/x/image/font"
 )
 
+// Render draws one termutil.Frame. It holds no reference to the terminal: the
+// frame is already a snapshot, so nothing here needs a lock and a slow draw
+// cannot stall the parser.
 type Render struct {
-	frame           *ebiten.Image
+	canvas          *ebiten.Image
 	screen          *ebiten.Image
-	terminal        *termutil.Terminal
-	buffer          *termutil.Buffer
-	theme           *termutil.Theme
+	frame           *termutil.Frame
 	fontManager     *font.Manager
 	pixelWidth      int
 	pixelHeight     int
@@ -35,14 +36,12 @@ type Font struct {
 	DotDepth   int
 }
 
-func New(screen *ebiten.Image, terminal *termutil.Terminal, fontManager *font.Manager, popups []popup.Message, opacity float64, enableLigatures bool, cursorImage *ebiten.Image) *Render {
+func New(screen *ebiten.Image, frame *termutil.Frame, fontManager *font.Manager, popups []popup.Message, opacity float64, enableLigatures bool, cursorImage *ebiten.Image) *Render {
 	w, h := screen.Size()
 	return &Render{
 		screen:      screen,
-		frame:       ebiten.NewImage(w, h),
-		terminal:    terminal,
-		buffer:      terminal.GetActiveBuffer(),
-		theme:       terminal.Theme(),
+		canvas:      ebiten.NewImage(w, h),
+		frame:       frame,
 		fontManager: fontManager,
 		pixelWidth:  w,
 		pixelHeight: h,
@@ -62,11 +61,8 @@ func New(screen *ebiten.Image, terminal *termutil.Terminal, fontManager *font.Ma
 }
 
 func (r *Render) Draw() {
-	r.terminal.Lock()
-	defer r.terminal.Unlock()
-
 	// 1. fill frame with default background colour
-	r.frame.Fill(r.theme.DefaultBackground())
+	r.canvas.Fill(r.frame.Colours.Background)
 
 	// 2. draw content (each row, each cell)
 	r.drawContent()
@@ -92,8 +88,8 @@ func (r *Render) Draw() {
 }
 
 func (r *Render) finalise() {
-	defer r.frame.Dispose()
+	defer r.canvas.Dispose()
 	opt := &ebiten.DrawImageOptions{}
 	opt.ColorM.Scale(1, 1, 1, r.opacity)
-	r.screen.DrawImage(r.frame, opt)
+	r.screen.DrawImage(r.canvas, opt)
 }

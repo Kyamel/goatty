@@ -176,7 +176,7 @@ func (tt *testTerm) feed(input string) {
 // screen renders the visible grid as text, with unwritten cells as spaces and
 // trailing blanks stripped.
 func (tt *testTerm) screen() string {
-	lines := tt.GetActiveBuffer().GetVisibleLines()
+	lines := tt.buffer().GetVisibleLines()
 	out := make([]string, 0, len(lines))
 	for _, line := range lines {
 		out = append(out, strings.TrimRight(strings.ReplaceAll(line.String(), "\x00", " "), " "))
@@ -203,13 +203,13 @@ func (tt *testTerm) reply() string {
 }
 
 func (tt *testTerm) cursor() (col, row uint16) {
-	buf := tt.GetActiveBuffer()
+	buf := tt.buffer()
 	return buf.CursorColumn(), buf.CursorLine()
 }
 
 func (tt *testTerm) cellAt(col, row uint16) *Cell {
 	tt.t.Helper()
-	cell := tt.GetActiveBuffer().GetCell(col, row)
+	cell := tt.buffer().GetCell(col, row)
 	if cell == nil {
 		tt.t.Fatalf("no cell at %d,%d", col, row)
 	}

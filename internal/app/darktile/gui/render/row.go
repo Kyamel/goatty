@@ -13,13 +13,13 @@ func (r *Render) drawRow(viewY int, defaultBackgroundColour color.Color, default
 	pixelY := r.font.CellSize.Y * viewY
 
 	// draw a default colour background image across the entire row background
-	ebitenutil.DrawRect(r.frame, 0, float64(pixelY), float64(r.pixelWidth), float64(r.font.CellSize.Y), defaultBackgroundColour)
+	ebitenutil.DrawRect(r.canvas, 0, float64(pixelY), float64(r.pixelWidth), float64(r.font.CellSize.Y), defaultBackgroundColour)
 
 	var colour color.Color
 
 	// draw background for each cell in row
-	for viewX := uint16(0); viewX < r.buffer.ViewWidth(); viewX++ {
-		cell := r.buffer.GetCell(viewX, uint16(viewY))
+	for viewX := uint16(0); viewX < r.frame.Width; viewX++ {
+		cell := r.frame.Cell(viewX, uint16(viewY))
 		pixelX := r.font.CellSize.X * int(viewX)
 		if cell != nil {
 			colour = cell.Bg()
@@ -28,16 +28,16 @@ func (r *Render) drawRow(viewY int, defaultBackgroundColour color.Color, default
 			colour = defaultBackgroundColour
 		}
 
-		ebitenutil.DrawRect(r.frame, float64(pixelX), float64(pixelY), float64(r.font.CellSize.X), float64(r.font.CellSize.Y), colour)
+		ebitenutil.DrawRect(r.canvas, float64(pixelX), float64(pixelY), float64(r.font.CellSize.X), float64(r.font.CellSize.Y), colour)
 	}
 
 	var useFace imagefont.Face
 	var skipRunes int
 
 	// draw text content of each cell in row
-	for viewX := uint16(0); viewX < r.buffer.ViewWidth(); viewX++ {
+	for viewX := uint16(0); viewX < r.frame.Width; viewX++ {
 
-		cell := r.buffer.GetCell(viewX, uint16(viewY))
+		cell := r.frame.Cell(viewX, uint16(viewY))
 
 		// we don't need to draw empty cells
 		if cell == nil || cell.Rune().Rune == 0 {
@@ -64,13 +64,13 @@ func (r *Render) drawRow(viewY int, defaultBackgroundColour color.Color, default
 		// underline the cell content if required
 		if cell.Underline() {
 			underlinePixelY := float64(pixelY + (r.font.DotDepth+r.font.CellSize.Y)/2)
-			ebitenutil.DrawLine(r.frame, float64(pixelX), underlinePixelY, float64(pixelX+r.font.CellSize.X), underlinePixelY, colour)
+			ebitenutil.DrawLine(r.canvas, float64(pixelX), underlinePixelY, float64(pixelX+r.font.CellSize.X), underlinePixelY, colour)
 		}
 
 		// strikethrough the cell if required
 		if cell.Strikethrough() {
 			ebitenutil.DrawLine(
-				r.frame,
+				r.canvas,
 				float64(pixelX),
 				float64(pixelY+(r.font.CellSize.Y/2)),
 				float64(pixelX+r.font.CellSize.X),
@@ -89,6 +89,6 @@ func (r *Render) drawRow(viewY int, defaultBackgroundColour color.Color, default
 		}
 
 		// draw the text for the cell
-		text.Draw(r.frame, string(cell.Rune().Rune), useFace, pixelX, pixelY+r.font.DotDepth, colour)
+		text.Draw(r.canvas, string(cell.Rune().Rune), useFace, pixelX, pixelY+r.font.DotDepth, colour)
 	}
 }

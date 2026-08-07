@@ -7,11 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/liamg/darktile/internal/app/darktile/config"
-	"github.com/liamg/darktile/internal/app/darktile/gui"
-	"github.com/liamg/darktile/internal/app/darktile/hinters"
-	"github.com/liamg/darktile/internal/app/darktile/termutil"
-	"github.com/liamg/darktile/internal/app/darktile/version"
+	"github.com/kyamel/goatty/internal/app/darktile/config"
+	"github.com/kyamel/goatty/internal/app/darktile/gui"
+	"github.com/kyamel/goatty/internal/app/darktile/hinters"
+	"github.com/kyamel/goatty/internal/app/darktile/termutil"
+	"github.com/kyamel/goatty/internal/app/darktile/version"
 	"github.com/spf13/cobra"
 )
 

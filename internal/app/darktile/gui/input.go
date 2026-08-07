@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/liamg/darktile/internal/app/darktile/clipboard"
+	"github.com/kyamel/goatty/internal/app/darktile/clipboard"
+	"github.com/kyamel/goatty/internal/app/darktile/termutil"
 )
 
 var modifiableKeys = map[ebiten.Key]uint8{
@@ -36,11 +37,21 @@ var modifiableKeys = map[ebiten.Key]uint8{
 	ebiten.KeyZ: 'Z',
 }
 
+// handleInput runs the whole input pass under the terminal lock, so that the
+// reads it makes and the mutations it derives from them cannot be interleaved
+// with the parser goroutine.
 func (g *GUI) handleInput() error {
-	g.terminal.Lock()
-	defer g.terminal.Unlock()
+	var err error
+	g.terminal.Edit(func(b *termutil.Buffer) {
+		g.buf = b
+		defer func() { g.buf = nil }()
+		err = g.handleInputLocked(b)
+	})
+	return err
+}
 
-	if err := g.handleMouse(); err != nil {
+func (g *GUI) handleInputLocked(b *termutil.Buffer) error {
+	if err := g.handleMouse(b); err != nil {
 		return err
 	}
 
@@ -50,7 +61,7 @@ func (g *GUI) handleInput() error {
 
 		switch true {
 		case g.keyState.RepeatPressed(ebiten.KeyC):
-			content, selection := g.terminal.GetActiveBuffer().GetSelection()
+			content, selection := b.GetSelection()
 			if selection == nil {
 				return nil
 			}
@@ -107,7 +118,7 @@ func (g *GUI) handleInput() error {
 		}
 
 	case g.keyState.RepeatPressed(ebiten.KeyArrowUp):
-		if g.terminal.GetActiveBuffer().IsApplicationCursorKeysModeEnabled() {
+		if b.IsApplicationCursorKeysModeEnabled() {
 			return g.terminal.WriteToPty([]byte{
 				0x1b,
 				'O',
@@ -117,7 +128,7 @@ func (g *GUI) handleInput() error {
 			return g.terminal.WriteToPty([]byte(fmt.Sprintf("\x1b[%sA", g.getModifierStr())))
 		}
 	case g.keyState.RepeatPressed(ebiten.KeyArrowDown):
-		if g.terminal.GetActiveBuffer().IsApplicationCursorKeysModeEnabled() {
+		if b.IsApplicationCursorKeysModeEnabled() {
 			return g.terminal.WriteToPty([]byte{
 				0x1b,
 				'O',
@@ -127,7 +138,7 @@ func (g *GUI) handleInput() error {
 			return g.terminal.WriteToPty([]byte(fmt.Sprintf("\x1b[%sB", g.getModifierStr())))
 		}
 	case g.keyState.RepeatPressed(ebiten.KeyArrowRight):
-		if g.terminal.GetActiveBuffer().IsApplicationCursorKeysModeEnabled() {
+		if b.IsApplicationCursorKeysModeEnabled() {
 			return g.terminal.WriteToPty([]byte{
 				0x1b,
 				'O',
@@ -137,7 +148,7 @@ func (g *GUI) handleInput() error {
 			return g.terminal.WriteToPty([]byte(fmt.Sprintf("\x1b[%sC", g.getModifierStr())))
 		}
 	case g.keyState.RepeatPressed(ebiten.KeyArrowLeft):
-		if g.terminal.GetActiveBuffer().IsApplicationCursorKeysModeEnabled() {
+		if b.IsApplicationCursorKeysModeEnabled() {
 			return g.terminal.WriteToPty([]byte{
 				0x1b,
 				'O',
@@ -147,19 +158,19 @@ func (g *GUI) handleInput() error {
 			return g.terminal.WriteToPty([]byte(fmt.Sprintf("\x1b[%sD", g.getModifierStr())))
 		}
 	case g.keyState.RepeatPressed(ebiten.KeyEnter):
-		if g.terminal.GetActiveBuffer().IsNewLineMode() {
+		if b.IsNewLineMode() {
 			return g.terminal.WriteToPty([]byte{0x0d, 0x0a})
 		}
 		return g.terminal.WriteToPty([]byte{0x0d})
 	case g.keyState.RepeatPressed(ebiten.KeyNumpadEnter):
-		if g.terminal.GetActiveBuffer().IsApplicationCursorKeysModeEnabled() {
+		if b.IsApplicationCursorKeysModeEnabled() {
 			g.terminal.WriteToPty([]byte{
 				0x1b,
 				'O',
 				'M',
 			})
 		} else {
-			if g.terminal.GetActiveBuffer().IsNewLineMode() {
+			if b.IsNewLineMode() {
 				if err := g.terminal.WriteToPty([]byte{0x0d, 0x0a}); err != nil {
 					return err
 				}
@@ -170,8 +181,8 @@ func (g *GUI) handleInput() error {
 		return g.terminal.WriteToPty([]byte{0x09}) // tab
 
 	case g.keyState.RepeatPressed(ebiten.KeyEscape):
-		g.terminal.GetActiveBuffer().ClearSelection()
-		g.terminal.GetActiveBuffer().ClearHighlight()
+		b.ClearSelection()
+		b.ClearHighlight()
 		return g.terminal.WriteToPty([]byte{0x1b}) // escape
 	case g.keyState.RepeatPressed(ebiten.KeyBackspace):
 		if ebiten.IsKeyPressed(ebiten.KeyAlt) {
@@ -208,7 +219,7 @@ func (g *GUI) handleInput() error {
 	case g.keyState.RepeatPressed(ebiten.KeyDelete):
 		return g.terminal.WriteToPty([]byte("\x1b[3~"))
 	case g.keyState.RepeatPressed(ebiten.KeyHome):
-		if g.terminal.GetActiveBuffer().IsApplicationCursorKeysModeEnabled() {
+		if b.IsApplicationCursorKeysModeEnabled() {
 			return g.terminal.WriteToPty([]byte(fmt.Sprintf("\x1b[1%s~", g.getModifierStr())))
 		} else {
 			return g.terminal.WriteToPty([]byte("\x1b[H"))

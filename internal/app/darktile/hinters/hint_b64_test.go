@@ -3,7 +3,7 @@ package hinters
 import (
 	"testing"
 
-	"github.com/liamg/darktile/internal/app/darktile/termutil"
+	"github.com/kyamel/goatty/internal/app/darktile/termutil"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -13,8 +13,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/liamg/darktile/internal/app/darktile/config"
-	"github.com/liamg/darktile/internal/app/darktile/termutil"
+	"github.com/kyamel/goatty/internal/app/darktile/config"
+	"github.com/kyamel/goatty/internal/app/darktile/termutil"
 )
 
 func main() {

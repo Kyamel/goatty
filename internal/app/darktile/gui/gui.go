@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/liamg/darktile/internal/app/darktile/font"
-	"github.com/liamg/darktile/internal/app/darktile/gui/popup"
-	"github.com/liamg/darktile/internal/app/darktile/hinters"
-	"github.com/liamg/darktile/internal/app/darktile/termutil"
+	"github.com/kyamel/goatty/internal/app/darktile/font"
+	"github.com/kyamel/goatty/internal/app/darktile/gui/popup"
+	"github.com/kyamel/goatty/internal/app/darktile/hinters"
+	"github.com/kyamel/goatty/internal/app/darktile/termutil"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -27,6 +27,7 @@ type GUI struct {
 	mouseDrag           bool
 	size                image.Point // pixels
 	terminal            *termutil.Terminal
+	frame               *termutil.Frame
 	updateChan          chan struct{}
 	lastClick           time.Time
 	clickCount          int
@@ -42,6 +43,13 @@ type GUI struct {
 	opacity             float64
 	enableLigatures     bool
 	cursorImage         *ebiten.Image
+
+	// buf is the active buffer, and is only set for the duration of an input
+	// pass. Hinters call back into the GUI while that pass holds the terminal
+	// lock, and hinters.API has nowhere to pass a buffer through, so it is
+	// parked here instead. Outside the pass it is nil, so a hinter fired from
+	// anywhere else panics rather than mutating a buffer unlocked.
+	buf *termutil.Buffer
 }
 
 type MouseState uint8
@@ -118,7 +126,7 @@ func (g *GUI) CellSize() image.Point {
 func (g *GUI) Highlight(start termutil.Position, end termutil.Position, label string, img image.Image) {
 
 	if label == "" && img == nil {
-		g.terminal.GetActiveBuffer().Highlight(start, end, nil)
+		g.buf.Highlight(start, end, nil)
 		return
 	}
 
@@ -148,9 +156,9 @@ func (g *GUI) Highlight(start termutil.Position, end termutil.Position, label st
 		}
 	}
 
-	g.terminal.GetActiveBuffer().Highlight(start, end, annotation)
+	g.buf.Highlight(start, end, annotation)
 }
 
 func (g *GUI) ClearHighlight() {
-	g.terminal.GetActiveBuffer().ClearHighlight()
+	g.buf.ClearHighlight()
 }

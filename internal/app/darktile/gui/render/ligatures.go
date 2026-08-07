@@ -24,7 +24,7 @@ func (r *Render) handleLigatures(sx uint16, sy uint16, face imagefont.Face, colo
 
 	var candidate string
 	for x := sx; x <= sx+2; x++ {
-		cell := r.buffer.GetCell(x, sy)
+		cell := r.frame.Cell(x, sy)
 		if cell == nil || cell.Rune().Rune == 0 {
 			break
 		}
@@ -35,7 +35,7 @@ func (r *Render) handleLigatures(sx uint16, sy uint16, face imagefont.Face, colo
 		if ru, ok := ligatures[candidate]; ok {
 			// draw ligature
 			ligX := (int(sx) * r.font.CellSize.X) + (((len(candidate) - 1) * r.font.CellSize.X) / 2)
-			text.Draw(r.frame, string(ru), face, ligX, (int(sy)*r.font.CellSize.Y)+r.font.DotDepth, colour)
+			text.Draw(r.canvas, string(ru), face, ligX, (int(sy)*r.font.CellSize.Y)+r.font.DotDepth, colour)
 			return len(candidate)
 		}
 		candidate = candidate[:len(candidate)-1]

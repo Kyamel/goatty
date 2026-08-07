@@ -5,7 +5,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/liamg/darktile/internal/app/darktile/sixel"
+	"github.com/kyamel/goatty/internal/app/darktile/sixel"
 )
 
 type Sixel struct {

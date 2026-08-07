@@ -2,6 +2,8 @@ package gui
 
 import (
 	"image"
+
+	"github.com/kyamel/goatty/internal/app/darktile/termutil"
 )
 
 // Layout provides the terminal gui size in pixels. Required to implement the ebiten interface.
@@ -29,10 +31,9 @@ func (g *GUI) resize(w, h int) {
 	cols := uint16(w / g.fontManager.CharSize().X)
 	rows := uint16(h / g.fontManager.CharSize().Y)
 
-	g.terminal.Lock()
-	defer g.terminal.Unlock()
-
-	if g.terminal.IsRunning() {
-		_ = g.terminal.SetSize(rows, cols)
-	}
+	g.terminal.Edit(func(*termutil.Buffer) {
+		if g.terminal.IsRunning() {
+			_ = g.terminal.SetSize(rows, cols)
+		}
+	})
 }

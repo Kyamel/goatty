@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/liamg/darktile/internal/app/darktile/gui/popup"
+	"github.com/kyamel/goatty/internal/app/darktile/gui/popup"
 )
 
 func (g *GUI) getModifierStr() string {

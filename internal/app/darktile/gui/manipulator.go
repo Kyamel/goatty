@@ -2,7 +2,7 @@ package gui
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/liamg/darktile/internal/app/darktile/termutil"
+	"github.com/kyamel/goatty/internal/app/darktile/termutil"
 )
 
 type WindowManipulator struct {
@@ -82,7 +82,8 @@ func (m *WindowManipulator) SizeInPixels() (int, int) {
 }
 
 func (m *WindowManipulator) SizeInChars() (int, int) {
-	return int(m.g.terminal.GetActiveBuffer().ViewWidth()), int(m.g.terminal.GetActiveBuffer().ViewHeight())
+	cols, rows := m.g.terminal.ViewSize()
+	return int(cols), int(rows)
 }
 
 func (m *WindowManipulator) ResizeInPixels(x int, y int) {

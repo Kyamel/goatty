@@ -3,7 +3,7 @@ package hinters
 import (
 	"image"
 
-	"github.com/liamg/darktile/internal/app/darktile/termutil"
+	"github.com/kyamel/goatty/internal/app/darktile/termutil"
 )
 
 type TestAPI struct {

@@ -27,21 +27,21 @@ func (t *Terminal) handleANSI(readChan chan MeasuredRune) (renderRequired bool) 
 	case '=':
 		return swallowHandler(0)(readChan) // alt char selection
 	case '7':
-		t.GetActiveBuffer().saveCursor()
+		t.buffer().saveCursor()
 	case '8':
-		t.GetActiveBuffer().restoreCursor()
+		t.buffer().restoreCursor()
 	case 'D':
-		t.GetActiveBuffer().index()
+		t.buffer().index()
 	case 'E':
-		t.GetActiveBuffer().newLineEx(true)
+		t.buffer().newLineEx(true)
 	case 'H':
-		t.GetActiveBuffer().tabSetAtCursor()
+		t.buffer().tabSetAtCursor()
 	case 'M':
-		t.GetActiveBuffer().reverseIndex()
+		t.buffer().reverseIndex()
 	case 'P': // sixel
 		t.handleSixel(readChan)
 	case 'c':
-		t.GetActiveBuffer().clear()
+		t.buffer().clear()
 	case '#':
 		return t.handleScreenState(readChan)
 	case '^':
@@ -69,7 +69,7 @@ func (t *Terminal) handleScreenState(readChan chan MeasuredRune) bool {
 	case '8': // DECALN -- Screen Alignment Pattern
 
 		// hide cursor?
-		buffer := t.GetActiveBuffer()
+		buffer := t.buffer()
 		buffer.resetVerticalMargins(uint(buffer.viewHeight))
 		buffer.SetScrollOffset(0)
 

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/liamg/darktile/internal/app/darktile/packed"
+	"github.com/kyamel/goatty/internal/app/darktile/packed"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/font/sfnt"

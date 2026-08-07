@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/liamg/darktile/internal/app/darktile/cmd"
+	"github.com/kyamel/goatty/internal/app/darktile/cmd"
 )
 
 /**

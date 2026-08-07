@@ -1,4 +1,4 @@
-module github.com/liamg/darktile
+module github.com/kyamel/goatty
 
 go 1.26.0
 

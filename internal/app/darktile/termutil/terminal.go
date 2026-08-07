@@ -306,8 +306,15 @@ func (t *Terminal) GetMouseExtMode() MouseExtMode {
 	return t.mouseExtMode
 }
 
-func (t *Terminal) GetActiveBuffer() *Buffer {
+func (t *Terminal) buffer() *Buffer {
 	return t.activeBuffer
+}
+
+// ViewSize reports the viewport size in cells. It does not take the lock,
+// because the only caller outside the package is WindowManipulator, which the
+// parser invokes while already holding it.
+func (t *Terminal) ViewSize() (cols, rows uint16) {
+	return t.activeBuffer.ViewWidth(), t.activeBuffer.ViewHeight()
 }
 
 func (t *Terminal) useMainBuffer() {
@@ -318,10 +325,12 @@ func (t *Terminal) useAltBuffer() {
 	t.switchBuffer(AltBuffer)
 }
 
-func (t *Terminal) Lock() {
+// Edit runs fn with exclusive access to the active buffer. It is the only way
+// in from outside the package, so the parser goroutine can never observe a
+// half-applied change, and callers that read a value and then act on it stay
+// atomic. fn must not call back into Terminal: the lock is not reentrant.
+func (t *Terminal) Edit(fn func(*Buffer)) {
 	t.mu.Lock()
-}
-
-func (t *Terminal) Unlock() {
-	t.mu.Unlock()
+	defer t.mu.Unlock()
+	fn(t.activeBuffer)
 }

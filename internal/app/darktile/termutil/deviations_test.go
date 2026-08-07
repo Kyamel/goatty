@@ -112,9 +112,9 @@ func TestDeviationInsertLineGrowsBufferAndUnderflowsCursorReport(t *testing.T) {
 	term := newTestTerm(t, 20, 6)
 	term.feed("one\r\ntwo\r\nthree")
 
-	before := term.GetActiveBuffer().Height()
+	before := term.buffer().Height()
 	term.feed("\x1b[1;1H\x1b[99L")
-	after := term.GetActiveBuffer().Height()
+	after := term.buffer().Height()
 
 	assert.Greater(t, after, before, "buffer grew by the inserted lines")
 

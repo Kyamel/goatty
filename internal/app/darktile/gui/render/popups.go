@@ -14,8 +14,8 @@ func (r *Render) drawPopups() {
 	}
 
 	pad := r.font.CellSize.Y / 2 // horizontal and vertical padding
-	maxPixelX := float64(r.font.CellSize.X * int(r.buffer.ViewWidth()))
-	maxPixelY := float64(r.font.CellSize.Y * int(r.buffer.ViewHeight()))
+	maxPixelX := float64(r.font.CellSize.X * int(r.frame.Width))
+	maxPixelY := float64(r.font.CellSize.Y * int(r.frame.Height))
 
 	for _, msg := range r.popups {
 
@@ -29,11 +29,11 @@ func (r *Render) drawPopups() {
 			boxWidth = maxPixelX / 8
 		}
 
-		ebitenutil.DrawRect(r.frame, float64(msgX-1), msgY-1, boxWidth+2, boxHeight+2, msg.Foreground)
-		ebitenutil.DrawRect(r.frame, float64(msgX), msgY, boxWidth, boxHeight, msg.Background)
+		ebitenutil.DrawRect(r.canvas, float64(msgX-1), msgY-1, boxWidth+2, boxHeight+2, msg.Foreground)
+		ebitenutil.DrawRect(r.canvas, float64(msgX), msgY, boxWidth, boxHeight, msg.Background)
 		for y, line := range lines {
 			for x, c := range line {
-				text.Draw(r.frame, string(c), r.font.Regular, msgX+pad+(x*r.font.CellSize.X), pad+(y*r.font.CellSize.Y)+int(msgY)+r.font.DotDepth, msg.Foreground)
+				text.Draw(r.canvas, string(c), r.font.Regular, msgX+pad+(x*r.font.CellSize.X), pad+(y*r.font.CellSize.Y)+int(msgY)+r.font.DotDepth, msg.Foreground)
 			}
 		}
 		maxPixelY = maxPixelY - float64(pad*4) - float64(len(lines)*r.font.CellSize.Y)

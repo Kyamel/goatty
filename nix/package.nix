@@ -48,7 +48,7 @@ buildGoModule {
   ldflags = [
     "-s"
     "-w"
-    "-X github.com/liamg/darktile/internal/app/darktile/version.Version=${version}"
+    "-X github.com/kyamel/goatty/internal/app/darktile/version.Version=${version}"
   ];
 
   # ebiten resolves libGL with dlopen rather than linking it, so nothing here
@@ -72,7 +72,7 @@ buildGoModule {
 
   meta = {
     description = "GPU rendered terminal emulator";
-    homepage = "https://github.com/liamg/darktile";
+    homepage = "https://github.com/kyamel/goatty";
     license = lib.licenses.mit;
     mainProgram = "darktile";
     # Darwin builds only work when run on a Mac. nixpkgs cannot cross-compile

@@ -315,26 +315,26 @@ func TestParserAltBuffer(t *testing.T) {
 
 func TestParserCursorVisibility(t *testing.T) {
 	term := newTestTerm(t, 20, 6)
-	require.True(t, term.GetActiveBuffer().IsCursorVisible())
+	require.True(t, term.buffer().IsCursorVisible())
 
 	term.feed("\x1b[?25l")
-	assert.False(t, term.GetActiveBuffer().IsCursorVisible())
+	assert.False(t, term.buffer().IsCursorVisible())
 
 	term.feed("\x1b[?25h")
-	assert.True(t, term.GetActiveBuffer().IsCursorVisible())
+	assert.True(t, term.buffer().IsCursorVisible())
 }
 
 func TestParserScrollingRegion(t *testing.T) {
 	term := newTestTerm(t, 20, 6)
 	term.feed("\x1b[2;4r")
 
-	buf := term.GetActiveBuffer()
+	buf := term.buffer()
 	assert.True(t, buf.HasScrollableRegion())
 	assert.Equal(t, uint(1), buf.TopMargin())
 	assert.Equal(t, uint(3), buf.BottomMargin())
 
 	term.feed("\x1b[r")
-	assert.False(t, term.GetActiveBuffer().HasScrollableRegion())
+	assert.False(t, term.buffer().HasScrollableRegion())
 }
 
 func TestParserDECALNFillsScreen(t *testing.T) {

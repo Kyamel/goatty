@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"time"
 
-	"github.com/liamg/darktile/internal/app/darktile/gui/popup"
+	"github.com/kyamel/goatty/internal/app/darktile/gui/popup"
 )
 
 const (

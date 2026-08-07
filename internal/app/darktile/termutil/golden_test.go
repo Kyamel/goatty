@@ -113,7 +113,7 @@ func TestGoldenSessions(t *testing.T) {
 // text, followed by run-length encoded attributes for any cell that is not at
 // its defaults.
 func (tt *testTerm) snapshot() string {
-	buf := tt.GetActiveBuffer()
+	buf := tt.buffer()
 
 	var out strings.Builder
 	fmt.Fprintf(&out, "size: %dx%d\n", buf.ViewWidth(), buf.ViewHeight())
@@ -159,7 +159,7 @@ func (tt *testTerm) activeBufferName() string {
 }
 
 func (tt *testTerm) rowText(row uint16) string {
-	buf := tt.GetActiveBuffer()
+	buf := tt.buffer()
 	var line strings.Builder
 	for col := uint16(0); col < buf.ViewWidth(); col++ {
 		cell := buf.GetCell(col, row)
@@ -175,7 +175,7 @@ func (tt *testTerm) rowText(row uint16) string {
 // attributeRuns collapses each row into runs of identical styling, emitting
 // only the runs that differ from a freshly written default cell.
 func (tt *testTerm) attributeRuns() string {
-	buf := tt.GetActiveBuffer()
+	buf := tt.buffer()
 
 	var out strings.Builder
 	for row := uint16(0); row < buf.ViewHeight(); row++ {

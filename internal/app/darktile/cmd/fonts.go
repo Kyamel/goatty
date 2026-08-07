@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	darktilefont "github.com/liamg/darktile/internal/app/darktile/font"
+	darktilefont "github.com/kyamel/goatty/internal/app/darktile/font"
 	"github.com/spf13/cobra"
 )
 

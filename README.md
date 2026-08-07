@@ -30,14 +30,14 @@ On Linux, install the build dependencies:
 - `libgl1-mesa-dev`
 
 Grab the Linux or macOS binary for your architecture from the [latest
-release](https://github.com/liamg/darktile/releases/latest), `chmod +x` it and
+release](https://github.com/kyamel/goatty/releases/latest), `chmod +x` it and
 place it in your `$PATH`. macOS binaries are currently unsigned, so Gatekeeper
 may require you to approve the binary the first time it runs.
 
 If you're too lazy to do the above and you like to live life on the edge, you can pipe this script to sudo:
 
 ```bash
-curl -s "https://raw.githubusercontent.com/liamg/darktile/main/scripts/install.sh" | sudo bash
+curl -s "https://raw.githubusercontent.com/kyamel/goatty/main/scripts/install.sh" | sudo bash
 ```
 
 ## Configuration

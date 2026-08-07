@@ -5,7 +5,7 @@ set -e
 echo "Determining platform..."
 platform=$(uname | tr '[:upper:]' '[:lower:]')
 echo "Finding latest release..."
-asset=$(curl --silent https://api.github.com/repos/liamg/darktile/releases/latest | jq -r ".assets[] | select(.name | contains(\"${platform}\")) | .url")
+asset=$(curl --silent https://api.github.com/repos/kyamel/goatty/releases/latest | jq -r ".assets[] | select(.name | contains(\"${platform}\")) | .url")
 echo "Downloading latest release for your platform..."
 curl -s -L -H "Accept: application/octet-stream" "${asset}" --output /tmp/darktile
 echo "Installing darktile..."

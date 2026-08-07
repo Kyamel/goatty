@@ -11,17 +11,18 @@ import (
 func (r *Render) drawAnnotation() {
 
 	// 1. check if we have anything to highlight/annotate
-	highlightStart, highlightEnd, ok := r.buffer.GetViewHighlight()
-	if !ok {
+	highlight := r.frame.Highlight
+	if highlight == nil {
 		return
 	}
+	highlightStart, highlightEnd := highlight.Start, highlight.End
 
 	// 2. make everything outside of the highlighted area opaque
 	dimColour := color.RGBA{A: 0x80} // 50% alpha black overlay to dim non-highlighted area
-	for line := 0; line < int(r.buffer.ViewHeight()); line++ {
+	for line := 0; line < int(r.frame.Height); line++ {
 		if line < int(highlightStart.Line) || line > int(highlightEnd.Line) {
 			ebitenutil.DrawRect(
-				r.frame,
+				r.canvas,
 				0,
 				float64(line*r.font.CellSize.Y),
 				float64(r.pixelWidth),
@@ -34,7 +35,7 @@ func (r *Render) drawAnnotation() {
 		if line == int(highlightStart.Line) && highlightStart.Col > 0 {
 			// we need to dim some content on this line before the highlight starts
 			ebitenutil.DrawRect(
-				r.frame,
+				r.canvas,
 				0,
 				float64(line*r.font.CellSize.Y),
 				float64(int(highlightStart.Col)*r.font.CellSize.X),
@@ -43,13 +44,13 @@ func (r *Render) drawAnnotation() {
 			)
 		}
 
-		if line == int(highlightEnd.Line) && highlightEnd.Col < r.buffer.ViewWidth()-2 {
+		if line == int(highlightEnd.Line) && highlightEnd.Col < r.frame.Width-2 {
 			// we need to dim some content on this line after the highlight ends
 			ebitenutil.DrawRect(
-				r.frame,
+				r.canvas,
 				float64(int(highlightEnd.Col+1)*r.font.CellSize.X),
 				float64(line*r.font.CellSize.Y),
-				float64(int(r.buffer.ViewWidth()-(highlightEnd.Col+1))*r.font.CellSize.X),
+				float64(int(r.frame.Width-(highlightEnd.Col+1))*r.font.CellSize.X),
 				float64(r.font.CellSize.Y),
 				dimColour,
 			)
@@ -57,7 +58,7 @@ func (r *Render) drawAnnotation() {
 	}
 
 	// 3. annotate the highlighted area (if there is an annotation)
-	annotation := r.buffer.GetHighlightAnnotation()
+	annotation := highlight.Annotation
 	if annotation == nil {
 		return
 	}
@@ -70,7 +71,7 @@ func (r *Render) drawAnnotation() {
 	var annotationY float64
 	var annotationHeight float64
 
-	if (highlightStart.Line + (highlightEnd.Line-highlightStart.Line)/2) < uint64(r.buffer.ViewHeight()/2) {
+	if (highlightStart.Line + (highlightEnd.Line-highlightStart.Line)/2) < uint64(r.frame.Height/2) {
 		// annotate underneath max
 
 		pixelsUnderHighlight := float64(r.pixelHeight) - float64((highlightEnd.Line+1)*uint64(r.font.CellSize.Y))
@@ -129,12 +130,12 @@ func (r *Render) drawAnnotation() {
 	}
 
 	// annotation border
-	ebitenutil.DrawRect(r.frame, float64(annotationX)-padding, annotationY-padding, float64(annotationWidth)+(padding*2), annotationHeight+(padding*2), r.theme.SelectionBackground())
+	ebitenutil.DrawRect(r.canvas, float64(annotationX)-padding, annotationY-padding, float64(annotationWidth)+(padding*2), annotationHeight+(padding*2), r.frame.Colours.SelectionBackground)
 	// annotation background
-	ebitenutil.DrawRect(r.frame, 1+float64(annotationX)-padding, 1+annotationY-padding, float64(annotationWidth)+(padding*2)-2, annotationHeight+(padding*2)-2, r.theme.DefaultBackground())
+	ebitenutil.DrawRect(r.canvas, 1+float64(annotationX)-padding, 1+annotationY-padding, float64(annotationWidth)+(padding*2)-2, annotationHeight+(padding*2)-2, r.frame.Colours.Background)
 
 	// vertical line
-	ebitenutil.DrawLine(r.frame, float64(mousePixelX), float64(lineY), float64(mousePixelX), lineY+lineHeight, r.theme.SelectionBackground())
+	ebitenutil.DrawLine(r.canvas, float64(mousePixelX), float64(lineY), float64(mousePixelX), lineY+lineHeight, r.frame.Colours.SelectionBackground)
 
 	var tY int
 	var tX int
@@ -143,7 +144,7 @@ func (r *Render) drawAnnotation() {
 		tY += annotation.Image.Bounds().Dy() + r.font.CellSize.Y/2
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(float64(annotationX), annotationY)
-		r.frame.DrawImage(
+		r.canvas.DrawImage(
 			ebiten.NewImageFromImage(annotation.Image),
 			op,
 		)
@@ -155,7 +156,7 @@ func (r *Render) drawAnnotation() {
 			tX = 0
 			continue
 		}
-		text.Draw(r.frame, string(ch), r.font.Regular, annotationX+tX, int(annotationY)+r.font.DotDepth+tY, r.theme.DefaultForeground())
+		text.Draw(r.canvas, string(ch), r.font.Regular, annotationX+tX, int(annotationY)+r.font.DotDepth+tY, r.frame.Colours.Foreground)
 		tX += r.font.CellSize.X
 	}
 
