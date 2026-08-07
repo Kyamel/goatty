@@ -34,6 +34,7 @@ jobs:
           - arch: amd64
             runner: macos-15-intel
     env:
+      CGO_ENABLED: 1
       GOFLAGS: -mod=vendor
     steps:
       - uses: actions/checkout@v7

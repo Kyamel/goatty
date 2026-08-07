@@ -3,8 +3,8 @@ package gui
 import (
 	"fmt"
 
-	"github.com/d-tsuji/clipboard"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/liamg/darktile/internal/app/darktile/clipboard"
 )
 
 var modifiableKeys = map[ebiten.Key]uint8{

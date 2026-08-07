@@ -48,6 +48,7 @@ jobs:
 
       - name: Build and smoke test
         env:
+          CGO_ENABLED: 1
           GOFLAGS: -mod=vendor
         run: |
           version="${GITHUB_REF_NAME#v}"
