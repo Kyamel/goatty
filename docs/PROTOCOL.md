@@ -38,8 +38,8 @@ The semantic layer never replaces ANSI. It runs alongside it:
 
 ```text
 program
-   ├── stdout ANSI/text   -> every terminal understands this
-   └── semantic objects   -> a capable terminal enriches it
+   |-- stdout ANSI/text   -> every terminal understands this
+   `-- semantic objects   -> a capable terminal enriches it
 ```
 
 A program keeps printing text exactly as it does today, and *additionally* may
@@ -115,7 +115,7 @@ Command {
 ```
 
 Each execution becomes a closed, addressable unit with a beginning, updates and
-an end — instead of characters irrevocably dumped into a grid.
+an end -- instead of characters irrevocably dumped into a grid.
 
 The first step here needs no new protocol at all: **OSC 133 shell integration**
 already delimits prompt, command, output and exit status. That is the cheapest
@@ -178,7 +178,7 @@ be able to feel that.
 
 ## Intents should be few
 
-Roughly 15–20 object types, at most. For example:
+Roughly 15-20 object types, at most. For example:
 
 - prompt
 - progress
@@ -198,7 +198,7 @@ Roughly 15–20 object types, at most. For example:
 - test-suite
 
 Beyond that the set starts getting too specific. A calendar, for instance, does
-not get a `calendar` type — it is text, or it is canvas.
+not get a `calendar` type -- it is text, or it is canvas.
 
 ### The rule for admitting a type
 
@@ -227,7 +227,7 @@ The ones at the bottom stay the application's responsibility.
 
 There is a real tension to resolve here.
 
-The *application-facing API* should feel like an immediate-mode graphics API —
+The *application-facing API* should feel like an immediate-mode graphics API --
 closer to Dear ImGui than to HTML. Few primitives, no layout engine, no
 retained widget tree for the application to manage:
 
@@ -256,9 +256,9 @@ of the first leak into the design of the second.
 
 Two things have been discussed that are not obviously the same:
 
-1. **Command and output objects** — diagnostics, tables, artifacts, command
+1. **Command and output objects** -- diagnostics, tables, artifacts, command
    blocks. The semantics of *what the output means*.
-2. **Drawing intents** — the immediate-mode surface above, ending in canvas.
+2. **Drawing intents** -- the immediate-mode surface above, ending in canvas.
    The semantics of *what to paint*.
 
 They differ on lifetime (persistent vs per-frame), addressing (stable `id` vs
@@ -299,9 +299,9 @@ the presentation, the consumer does not have to be a terminal:
 
 ```text
 producer
-    ↓
+    |
 semantic object stream
-    ↓
+    |
 renderer  ->  terminal | web | native app | TUI | editor
               agent | remote renderer | accessibility layer
 ```
@@ -314,7 +314,7 @@ object model where it can be avoided.
 
 Goatty should be the *first implementation*, not the owner. A protocol that
 belongs to one terminal becomes one more vendor extension that nobody else
-adopts — which is what happened to most terminal protocols historically.
+adopts -- which is what happened to most terminal protocols historically.
 
 ---
 
@@ -322,13 +322,13 @@ adopts — which is what happened to most terminal protocols historically.
 
 Do not try to design the universal protocol first. In order:
 
-1. **Semantic scrollback** — the terminal stops owning only lines.
-2. **Command blocks** — via OSC 133, which already exists.
-3. **A few object types** — `diagnostic`, `progress`, `table`, `artifact`.
+1. **Semantic scrollback** -- the terminal stops owning only lines.
+2. **Command blocks** -- via OSC 133, which already exists.
+3. **A few object types** -- `diagnostic`, `progress`, `table`, `artifact`.
    Resolve the one-protocol-or-two question before this step.
-4. **Standardized actions** — what a user can do with an object.
-5. **Updates and chunking** — objects that change after being emitted.
-6. **Negotiation and capabilities** — so a program can discover what the
+4. **Standardized actions** -- what a user can do with an object.
+5. **Updates and chunking** -- objects that change after being emitted.
+6. **Negotiation and capabilities** -- so a program can discover what the
    terminal understands, and degrade to text when it does not.
 7. **A specification independent of Goatty.**
 
@@ -340,7 +340,7 @@ Holding this boundary protects the two properties that have kept terminals
 relevant for decades:
 
 - the application keeps control of its own behaviour and layout;
-- tools stay composable and easy to wire together — shell, pipes, SSH, tmux.
+- tools stay composable and easy to wire together -- shell, pipes, SSH, tmux.
 
 Goatty gains modern capabilities without giving up the simplicity and
 hackability that made terminals worth keeping.

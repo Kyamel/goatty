@@ -6,8 +6,8 @@ This document describes what Goatty is trying to become and the principles that
 decisions should be measured against. Two companion documents cover the parts
 that need more detail:
 
-- [ROADMAP.md](ROADMAP.md) — the phased plan for getting there.
-- [PROTOCOL.md](PROTOCOL.md) — the semantic layer: structured objects alongside
+- [ROADMAP.md](ROADMAP.md) -- the phased plan for getting there.
+- [PROTOCOL.md](PROTOCOL.md) -- the semantic layer: structured objects alongside
   ANSI, and where the line sits between the terminal and the application. This
   is the single most consequential design decision here, and the one genuinely
   novel thing the project is attempting.
@@ -97,7 +97,7 @@ Each package should have one clear responsibility.
 
 ### 3. No giant files
 
-Avoid 3000-line files. Prefer many files of roughly 100–300 lines. Large files
+Avoid 3000-line files. Prefer many files of roughly 100-300 lines. Large files
 become psychological barriers for contributors.
 
 ### 4. Data-oriented architecture
@@ -214,7 +214,7 @@ transactional model   -> the meaning of the execution's effects
 
 **Why it is deferred:** implementing it generally means sandboxing, namespaces,
 filesystem overlays or snapshots, syscall tracing and child-process
-accounting — deep OS integration, with a different answer on every platform.
+accounting -- deep OS integration, with a different answer on every platform.
 The semantic object protocol is incrementally implementable and just as novel,
 so it goes first.
 
