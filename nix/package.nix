@@ -1,4 +1,5 @@
 { lib
+, stdenv
 , buildGoModule
 , pkg-config
 , makeWrapper
@@ -16,7 +17,12 @@
 }:
 
 let
-  graphicsLibs = [
+  # On darwin ebiten and glfw go through Cocoa, which the stdenv already
+  # provides, so none of the X11 stack applies and there is nothing to add in
+  # its place.
+  isLinux = stdenv.hostPlatform.isLinux;
+
+  graphicsLibs = lib.optionals isLinux [
     libGL
     libx11
     libxcursor
@@ -35,7 +41,8 @@ buildGoModule {
 
   subPackages = [ "cmd/darktile" ];
 
-  nativeBuildInputs = [ pkg-config makeWrapper copyDesktopItems ];
+  nativeBuildInputs = [ pkg-config ]
+    ++ lib.optionals isLinux [ makeWrapper copyDesktopItems ];
   buildInputs = graphicsLibs;
 
   ldflags = [
@@ -46,12 +53,12 @@ buildGoModule {
 
   # ebiten resolves libGL with dlopen rather than linking it, so nothing here
   # ends up in the binary's DT_NEEDED and the loader has no way to find it.
-  postInstall = ''
+  postInstall = lib.optionalString isLinux ''
     wrapProgram $out/bin/darktile \
       --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath graphicsLibs}
   '';
 
-  desktopItems = [
+  desktopItems = lib.optionals isLinux [
     (makeDesktopItem {
       name = "darktile";
       exec = "darktile";
@@ -68,6 +75,9 @@ buildGoModule {
     homepage = "https://github.com/liamg/darktile";
     license = lib.licenses.mit;
     mainProgram = "darktile";
-    platforms = lib.platforms.linux;
+    # Darwin builds only work when run on a Mac. nixpkgs cannot cross-compile
+    # to darwin from anywhere else: cctools, the linker, refuses to evaluate
+    # off a darwin host, so there is no toolchain to cross with.
+    platforms = lib.platforms.linux ++ lib.platforms.darwin;
   };
 }

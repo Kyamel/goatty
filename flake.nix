@@ -5,7 +5,11 @@
 
   outputs = { self, nixpkgs }:
     let
-      systems = [ "x86_64-linux" "aarch64-linux" ];
+      # aarch64-darwin only builds on a Mac, not from here: nixpkgs has no
+      # darwin cross toolchain, since cctools refuses to evaluate off a darwin
+      # host. It is listed so `nix build` works when someone runs it there.
+      # x86_64-darwin is absent because nixpkgs 26.11 dropped it.
+      systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
 
       graphicsLibsFor = pkgs: with pkgs; [
@@ -18,7 +22,14 @@
         libxxf86vm
       ];
 
-      version = "0.0.10-${self.shortRev or "dirty"}";
+      # A flake carries no tag information: `self` exposes rev, shortRev and
+      # revCount, and nothing else. So the released version is kept in a file
+      # and the release workflow refuses to publish a tag that disagrees with
+      # it, which is what stops this from drifting away from GoReleaser's
+      # `{{.Version}}`. The suffix mirrors `git describe`, since a Nix build is
+      # almost never exactly the tagged commit.
+      releaseVersion = nixpkgs.lib.trim (builtins.readFile ./VERSION);
+      version = releaseVersion + (if self ? rev then "-g${self.shortRev}" else "-dirty");
     in
     {
       packages = forAllSystems (pkgs: rec {

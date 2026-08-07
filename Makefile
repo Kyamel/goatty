@@ -8,6 +8,14 @@ build:
 test:
 	go test ./...
 
+# A flake only ever sees a commit, never a tag, so VERSION is the source of
+# truth and the tag is derived from it rather than the other way round. Bump
+# VERSION, commit, then run this.
+tag:
+	@v=$$(cat VERSION); \
+	git diff --quiet HEAD -- VERSION || { echo "VERSION differs from HEAD; commit it first" >&2; exit 1; }; \
+	git tag -a "v$$v" -m "v$$v" && echo "tagged v$$v"
+
 # Known CVEs in the dependency tree, filtered down to the ones actually
 # reachable from this code.
 vuln:
@@ -63,5 +71,5 @@ profile:
 	@echo
 	go tool pprof -top -nodecount=20 .cache/termutil.test .cache/cpu.prof
 
-.PHONY: default build test vuln esctest esctest-update wraptest wraptest-update \
+.PHONY: default build test tag vuln esctest esctest-update wraptest wraptest-update \
 	ucs-detect render render-update fuzz bench profile
