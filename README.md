@@ -139,16 +139,16 @@ Download the binary for your platform from the
 
 | Platform | Release asset |
 | --- | --- |
-| Linux x86-64 | `darktile-linux-amd64` |
-| macOS Apple Silicon | `darktile-darwin-arm64` |
-| macOS Intel | `darktile-darwin-amd64` |
+| Linux x86-64 | `goatty-linux-amd64` |
+| macOS Apple Silicon | `goatty-darwin-arm64` |
+| macOS Intel | `goatty-darwin-amd64` |
 
 Then make it executable and place it somewhere in your `PATH`:
 
 ```sh
-chmod +x darktile-*
+chmod +x goatty-*
 mkdir -p "$HOME/.local/bin"
-mv darktile-* "$HOME/.local/bin/darktile"
+mv goatty-* "$HOME/.local/bin/goatty"
 ```
 
 macOS binaries are currently unsigned. Gatekeeper may ask you to approve the
@@ -176,31 +176,28 @@ Then build:
 git clone https://github.com/kyamel/goatty.git
 cd goatty
 make build
-./darktile
+./goatty
 ```
 
 With Nix:
 
 ```sh
 nix build
-./result/bin/darktile
+./result/bin/goatty
 ```
 
 ## Configuration
 
-During the migration from Darktile, the executable and configuration namespace
-remain `darktile`.
-
 | Platform | Configuration directory |
 | --- | --- |
-| Linux | `$XDG_CONFIG_HOME/darktile/` or `$HOME/.config/darktile/` |
-| macOS | `$HOME/Library/Application Support/darktile/` |
+| Linux | `$XDG_CONFIG_HOME/goatty/` or `$HOME/.config/goatty/` |
+| macOS | `$HOME/Library/Application Support/goatty/` |
 
 Generate a starting configuration and inspect available fonts:
 
 ```sh
-darktile --rewrite-config
-darktile list-fonts
+goatty --rewrite-config
+goatty list-fonts
 ```
 
 `config.yaml` may contain:

@@ -48,18 +48,18 @@ jobs:
       - name: Build macOS binaries
         run: |
           mkdir -p dist
-          go build -trimpath -o "dist/darktile-darwin-${{ matrix.arch }}" ./cmd/darktile
-          go build -trimpath -o dist/darktile-headless ./cmd/darktile-headless
+          go build -trimpath -o "dist/goatty-darwin-${{ matrix.arch }}" ./cmd/goatty
+          go build -trimpath -o dist/goatty-headless ./cmd/goatty-headless
       - name: Smoke test CLI and PTY
         run: |
-          "dist/darktile-darwin-${{ matrix.arch }}" --version
-          font_output=$("dist/darktile-darwin-${{ matrix.arch }}" list-fonts)
+          "dist/goatty-darwin-${{ matrix.arch }}" --version
+          font_output=$("dist/goatty-darwin-${{ matrix.arch }}" list-fonts)
           test -n "$font_output"
-          python3 -c 'import subprocess; subprocess.run(["dist/darktile-headless", "--command", "exit 0\n"], check=True, timeout=20)'
+          python3 -c 'import subprocess; subprocess.run(["dist/goatty-headless", "--command", "exit 0\n"], check=True, timeout=20)'
       - uses: actions/upload-artifact@v7
         with:
-          name: darktile-darwin-${{ matrix.arch }}-ci
-          path: dist/darktile-darwin-${{ matrix.arch }}
+          name: goatty-darwin-${{ matrix.arch }}-ci
+          path: dist/goatty-darwin-${{ matrix.arch }}
           if-no-files-found: error
 
   vulnerabilities:

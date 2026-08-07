@@ -33,13 +33,13 @@ let
   ];
 in
 buildGoModule {
-  pname = "darktile";
+  pname = "goatty";
   inherit src version;
 
   # The dependencies are committed under vendor/.
   vendorHash = null;
 
-  subPackages = [ "cmd/darktile" ];
+  subPackages = [ "cmd/goatty" ];
 
   nativeBuildInputs = [ pkg-config ]
     ++ lib.optionals isLinux [ makeWrapper copyDesktopItems ];
@@ -48,22 +48,22 @@ buildGoModule {
   ldflags = [
     "-s"
     "-w"
-    "-X github.com/kyamel/goatty/internal/app/darktile/version.Version=${version}"
+    "-X github.com/kyamel/goatty/internal/app/goatty/version.Version=${version}"
   ];
 
   # ebiten resolves libGL with dlopen rather than linking it, so nothing here
   # ends up in the binary's DT_NEEDED and the loader has no way to find it.
   postInstall = lib.optionalString isLinux ''
-    wrapProgram $out/bin/darktile \
+    wrapProgram $out/bin/goatty \
       --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath graphicsLibs}
   '';
 
   desktopItems = lib.optionals isLinux [
     (makeDesktopItem {
-      name = "darktile";
-      exec = "darktile";
+      name = "goatty";
+      exec = "goatty";
       icon = "utilities-terminal";
-      desktopName = "Darktile";
+      desktopName = "Goatty";
       comment = "GPU rendered terminal emulator";
       categories = [ "System" "TerminalEmulator" ];
       terminal = false;
@@ -74,7 +74,7 @@ buildGoModule {
     description = "GPU rendered terminal emulator";
     homepage = "https://github.com/kyamel/goatty";
     license = lib.licenses.mit;
-    mainProgram = "darktile";
+    mainProgram = "goatty";
     # Darwin builds only work when run on a Mac. nixpkgs cannot cross-compile
     # to darwin from anywhere else: cctools, the linker, refuses to evaluate
     # off a darwin host, so there is no toolchain to cross with.

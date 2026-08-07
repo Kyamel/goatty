@@ -1,5 +1,5 @@
 {
-  description = "darktile - GPU rendered terminal emulator";
+  description = "goatty - GPU rendered terminal emulator";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
@@ -34,15 +34,15 @@
     in
     {
       packages = forAllSystems (pkgs: rec {
-        darktile = pkgs.callPackage ./nix/package.nix {
+        goatty = pkgs.callPackage ./nix/package.nix {
           src = self;
           inherit version;
         };
-        default = darktile;
+        default = goatty;
       });
 
       overlays.default = final: prev: {
-        darktile = final.callPackage ./nix/package.nix {
+        goatty = final.callPackage ./nix/package.nix {
           src = self;
           inherit version;
         };
@@ -85,7 +85,7 @@
             # MESA_PREFIX is for the render goldens: on NixOS the drivers behind
             # that libGL come from /run/opengl-driver, which exists nowhere else,
             # so on a CI runner there is nothing for libglvnd to load. The script
-            # points at this mesa when it launches darktile. It cannot be
+            # points at this mesa when it launches goatty. It cannot be
             # exported here as LIBGL_DRIVERS_PATH, because Xvfb would pick it up
             # too and crash mixing it with the system mesa.
             shellHook = pkgs.lib.optionalString isLinux ''

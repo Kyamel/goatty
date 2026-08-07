@@ -1,6 +1,7 @@
 .idea
 .vscode
-/darktile
+/goatty
 *.swp
 /.cache
 /dist
+/result

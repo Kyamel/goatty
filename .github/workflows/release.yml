@@ -58,22 +58,22 @@ jobs:
           mkdir -p dist
           go test ./...
           go build -trimpath \
-            -ldflags="-s -w -X github.com/kyamel/goatty/internal/app/darktile/version.Version=$version" \
-            -o "dist/darktile-darwin-${{ matrix.arch }}" ./cmd/darktile
-          go build -trimpath -o dist/darktile-headless ./cmd/darktile-headless
-          "dist/darktile-darwin-${{ matrix.arch }}" --version
-          font_output=$("dist/darktile-darwin-${{ matrix.arch }}" list-fonts)
+            -ldflags="-s -w -X github.com/kyamel/goatty/internal/app/goatty/version.Version=$version" \
+            -o "dist/goatty-darwin-${{ matrix.arch }}" ./cmd/goatty
+          go build -trimpath -o dist/goatty-headless ./cmd/goatty-headless
+          "dist/goatty-darwin-${{ matrix.arch }}" --version
+          font_output=$("dist/goatty-darwin-${{ matrix.arch }}" list-fonts)
           test -n "$font_output"
-          python3 -c 'import subprocess; subprocess.run(["dist/darktile-headless", "--command", "exit 0\n"], check=True, timeout=20)'
+          python3 -c 'import subprocess; subprocess.run(["dist/goatty-headless", "--command", "exit 0\n"], check=True, timeout=20)'
 
       - uses: actions/upload-artifact@v7
         with:
           name: release-darwin-${{ matrix.arch }}
-          path: dist/darktile-darwin-${{ matrix.arch }}
+          path: dist/goatty-darwin-${{ matrix.arch }}
           if-no-files-found: error
 
   release:
-    name: Releasing Darktile
+    name: Releasing Goatty
     needs: macos
     runs-on: ubuntu-latest
 
@@ -133,5 +133,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sha256sum darktile-darwin-* > darktile_macos_checksums.txt
-          gh release upload "$GITHUB_REF_NAME" darktile-darwin-* darktile_macos_checksums.txt
+          sha256sum goatty-darwin-* > goatty_macos_checksums.txt
+          gh release upload "$GITHUB_REF_NAME" goatty-darwin-* goatty_macos_checksums.txt

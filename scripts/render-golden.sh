@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Renders a set of scenes in a real darktile window under Xvfb and compares the
+# Renders a set of scenes in a real goatty window under Xvfb and compares the
 # screenshots to checked-in goldens.
 #
 #   scripts/render-golden.sh            check against the goldens
@@ -19,7 +19,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-GOLDEN_DIR="internal/app/darktile/gui/testdata/render"
+GOLDEN_DIR="internal/app/goatty/gui/testdata/render"
 OUT_DIR="${OUT_DIR:-.cache/render}"
 SCREENSHOT_MS="${SCREENSHOT_MS:-2500}"
 # Software rendering is deterministic for a given mesa, which the flake pins.
@@ -129,8 +129,8 @@ if ! flock -n 9; then
     flock 9
 fi
 
-binary="$workdir/darktile"
-go build -o "$binary" ./cmd/darktile
+binary="$workdir/goatty"
+go build -o "$binary" ./cmd/goatty
 
 # A config or theme in the real home would change what is drawn. HOME moves
 # too, so LD_LIBRARY_PATH has to survive it: ebiten dlopens libGL, which the
@@ -145,9 +145,9 @@ mkdir -p "$XDG_CONFIG_HOME" "$HOME"
 # devShell and is what makes this work off NixOS, where there is no
 # /run/opengl-driver for libglvnd to load drivers from.
 #
-# This goes on darktile's own command line rather than in the environment
+# This goes on goatty's own command line rather than in the environment
 # because Xvfb must not inherit it -- it links the system mesa, and mixing the
-# two segfaults the X server before darktile ever starts.
+# two segfaults the X server before goatty ever starts.
 gl_env=(env LIBGL_ALWAYS_SOFTWARE=1)
 if [[ -n "${MESA_PREFIX:-}" ]]; then
     gl_env+=(

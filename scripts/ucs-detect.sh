@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# Runs jquast/ucs-detect against darktile to find which Unicode version the
+# Runs jquast/ucs-detect against goatty to find which Unicode version the
 # terminal's character widths agree with.
 #
 #   scripts/ucs-detect.sh          run and print a summary
 #   scripts/ucs-detect.sh --full   no limits; slow, but the real answer
 #
-# darktile currently advances the cursor by exactly one column per rune, so
+# goatty currently advances the cursor by exactly one column per rune, so
 # ucs-detect stops at its entry probe: it writes U+231A WATCH, measures the
 # cursor, gets 1 instead of 2, and skips every test. The JSON it saves still
 # records that, and the run becomes useful the moment character widths are
@@ -38,7 +38,7 @@ fi
 workdir=$(mktemp -d)
 trap 'rm -rf "$workdir"' EXIT
 
-go build -o "$workdir/darktile-headless" ./cmd/darktile-headless
+go build -o "$workdir/goatty-headless" ./cmd/goatty-headless
 
 mkdir -p "$(dirname "$REPORT")"
 rm -f "$REPORT"
@@ -55,7 +55,7 @@ EOF
 chmod +x "$workdir/run.sh"
 
 echo "running ucs-detect (${COLS}x${ROWS})"
-if ! timeout "$TIMEOUT" "$workdir/darktile-headless" \
+if ! timeout "$TIMEOUT" "$workdir/goatty-headless" \
         --cols "$COLS" --rows "$ROWS" \
         --command "$workdir/run.sh; exit" >/dev/null 2>&1; then
     echo "ucs-detect did not finish within ${TIMEOUT}s" >&2

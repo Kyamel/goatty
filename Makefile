@@ -51,12 +51,12 @@ render-update:
 
 # The parser is an untrusted-input boundary; this looks for panics and hangs.
 fuzz:
-	go test ./internal/app/darktile/termutil -run '^$$' -fuzz FuzzParser -fuzztime 300s
+	go test ./internal/app/goatty/termutil -run '^$$' -fuzz FuzzParser -fuzztime 300s
 
 # Write results to a file and compare two runs with benchstat before and after
 # a change.
 bench:
-	go test ./internal/app/darktile/termutil -run '^$$' -bench Parser -benchmem -count=8
+	go test ./internal/app/goatty/termutil -run '^$$' -bench Parser -benchmem -count=8
 
 # Where the parse path actually spends its time. WORKLOAD names one of the
 # benchmarks; the profiles stay in .cache so they can be opened again with
@@ -64,7 +64,7 @@ bench:
 WORKLOAD ?= sgr-churn
 profile:
 	@mkdir -p .cache
-	go test ./internal/app/darktile/termutil -run '^$$' \
+	go test ./internal/app/goatty/termutil -run '^$$' \
 		-bench 'Parser/$(WORKLOAD)$$$$' -benchtime 5s \
 		-cpuprofile .cache/cpu.prof -memprofile .cache/mem.prof \
 		-o .cache/termutil.test

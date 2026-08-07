@@ -22,7 +22,7 @@ func main() {
 		panic(err)
 	}
 
-	packed, err := os.OpenFile(fmt.Sprintf("./internal/app/darktile/packed/%s.go", strings.ToLower(name)), os.O_WRONLY|os.O_CREATE, 0744)
+	packed, err := os.OpenFile(fmt.Sprintf("./internal/app/goatty/packed/%s.go", strings.ToLower(name)), os.O_WRONLY|os.O_CREATE, 0744)
 	if err != nil {
 		panic(err)
 	}

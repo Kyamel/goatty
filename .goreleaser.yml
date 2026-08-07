@@ -8,11 +8,11 @@ before:
 builds:
   # macOS uses CGO/AppKit and is built natively by release.yml, then attached
   # to the release after this Linux GoReleaser job succeeds.
-  - id: darktile
-    main: ./cmd/darktile
-    binary: darktile
+  - id: goatty
+    main: ./cmd/goatty
+    binary: goatty
     ldflags:
-      - "-X github.com/kyamel/goatty/internal/app/darktile/version.Version={{.Version}}"
+      - "-X github.com/kyamel/goatty/internal/app/goatty/version.Version={{.Version}}"
     env:
       - GOFLAGS=-mod=vendor
     goos:

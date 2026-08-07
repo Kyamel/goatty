@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Runs mattiase/wraptest against darktile and diffs the report against a
+# Runs mattiase/wraptest against goatty and diffs the report against a
 # checked-in baseline.
 #
 #   scripts/wraptest.sh            check against the baseline
@@ -18,7 +18,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-BASELINE="internal/app/darktile/termutil/testdata/wraptest-baseline.txt"
+BASELINE="internal/app/goatty/termutil/testdata/wraptest-baseline.txt"
 WRAPTEST_DIR="${WRAPTEST_DIR:-.cache/wraptest}"
 WRAPTEST_REPO="https://github.com/mattiase/wraptest.git"
 COLS="${COLS:-80}"
@@ -39,7 +39,7 @@ trap 'rm -rf "$workdir"' EXIT
 report="$workdir/report.txt"
 
 cc -o "$workdir/wraptest" "$WRAPTEST_DIR/wraptest.c"
-go build -o "$workdir/darktile-headless" ./cmd/darktile-headless
+go build -o "$workdir/goatty-headless" ./cmd/goatty-headless
 
 # wraptest puts the tty in raw mode, which a background process group is not
 # allowed to do: it would be stopped by SIGTTOU and produce nothing. So the
@@ -52,7 +52,7 @@ EOF
 chmod +x "$workdir/run.sh"
 
 echo "running wraptest (${COLS}x${ROWS})"
-if ! timeout "$TIMEOUT" "$workdir/darktile-headless" \
+if ! timeout "$TIMEOUT" "$workdir/goatty-headless" \
         --cols "$COLS" --rows "$ROWS" \
         --command "$workdir/run.sh; exit" >/dev/null 2>&1; then
     echo "wraptest did not finish within ${TIMEOUT}s" >&2

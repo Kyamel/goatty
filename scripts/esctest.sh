@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Runs the esctest2 conformance suite against darktile and compares the set of
+# Runs the esctest2 conformance suite against goatty and compares the set of
 # failing tests to a checked-in baseline. New failures fail the script; tests
 # that started passing are reported so the baseline can be tightened.
 #
@@ -8,7 +8,7 @@
 #   scripts/esctest.sh --update   rewrite the baseline from this run
 #
 # esctest drives a terminal from the inside: it writes escape sequences to
-# stdout and reads the replies from stdin. darktile-headless gives it a real
+# stdout and reads the replies from stdin. goatty-headless gives it a real
 # pty attached to the terminal core, with no window or GPU involved.
 
 set -euo pipefail
@@ -20,7 +20,7 @@ export LC_ALL=C
 
 cd "$(dirname "$0")/.."
 
-BASELINE="internal/app/darktile/termutil/testdata/esctest-baseline.txt"
+BASELINE="internal/app/goatty/termutil/testdata/esctest-baseline.txt"
 ESCTEST_DIR="${ESCTEST_DIR:-.cache/esctest2}"
 ESCTEST_REPO="https://github.com/ThomasDickey/esctest2.git"
 VT_LEVEL="${VT_LEVEL:-4}"
@@ -38,10 +38,10 @@ fi
 workdir=$(mktemp -d)
 trap 'rm -rf "$workdir"' EXIT
 
-binary="$workdir/darktile-headless"
+binary="$workdir/goatty-headless"
 log="$workdir/esctest.log"
 
-go build -o "$binary" ./cmd/darktile-headless
+go build -o "$binary" ./cmd/goatty-headless
 
 echo "running esctest (vt level $VT_LEVEL, ${COLS}x${ROWS})"
 "$binary" --cols "$COLS" --rows "$ROWS" --command \
@@ -52,7 +52,7 @@ echo "running esctest (vt level $VT_LEVEL, ${COLS}x${ROWS})"
 # A panic in the terminal kills the run partway through, which would otherwise
 # look like a large batch of newly fixed tests.
 if grep -q "^panic:" "$workdir/stderr"; then
-    echo "darktile-headless panicked during the run:" >&2
+    echo "goatty-headless panicked during the run:" >&2
     head -20 "$workdir/stderr" >&2
     exit 1
 fi
