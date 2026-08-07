@@ -410,3 +410,59 @@ func TestParserUnicode(t *testing.T) {
 	term.feed("héllo → ✓")
 	assert.Equal(t, "héllo → ✓", term.screen())
 }
+
+// A CSI sequence carrying an intermediate byte that no handler claims used to
+// deadlock the parser goroutine: handleANSI holds the terminal mutex and the
+// unknown-sequence fallback tried to take it again. Any program probing for
+// DECRQCRA, DECRQM or DECSCA would freeze the terminal for good.
+func TestParserUnknownCSIWithIntermediateIsIgnored(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{"DECRQCRA", "\x1b[1;;1;1;1;3*y"},
+		{"DECRQM", "\x1b[?1049$p"},
+		{"DECSCA", "\x1b[1\"q"},
+		{"unassigned intermediate", "\x1b[5#z"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			term := newTestTerm(t, 20, 6)
+			term.feed(test.input + "ok")
+			assert.Equal(t, "ok", term.screen(), "sequence must not reach the screen")
+
+			term.feed("\x1b[6n")
+			assert.Equal(t, "\x1b[1;3R", term.reply(), "terminal must still respond")
+		})
+	}
+}
+
+// Line editing sequences take a repeat count straight from the program, so the
+// count routinely exceeds the number of lines that actually exist. Deleting
+// past the end used to slice out of range and take the terminal down.
+func TestParserLineEditingCountsBeyondBuffer(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{"delete lines", "\x1b[99M"},
+		{"insert lines", "\x1b[99L"},
+		{"delete characters", "\x1b[99P"},
+		{"insert characters", "\x1b[99@"},
+		{"erase characters", "\x1b[99X"},
+		{"scroll up", "\x1b[99S"},
+		{"scroll down", "\x1b[99T"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			term := newTestTerm(t, 20, 6)
+			term.feed("one\r\ntwo\r\nthree")
+			term.feed("\x1b[1;1H" + test.input)
+
+			term.feed("\x1b[6n")
+			assert.Regexp(t, `^\x1b\[\d+;\d+R$`, term.reply(), "terminal must survive the sequence")
+		})
+	}
+}

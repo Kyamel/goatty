@@ -100,3 +100,24 @@ func TestDeviationTruncatedSequenceBlocksParser(t *testing.T) {
 	case <-time.After(250 * time.Millisecond):
 	}
 }
+
+// Insert Line outside a scrollable region grows the line buffer instead of
+// shifting content down and discarding what falls off the bottom. The cursor's
+// raw line then sits above the view, and converting it back underflows uint16,
+// so the terminal reports a nonsense position to the program that asked.
+//
+// xterm keeps the buffer height fixed here. Fixing this means changing how IL
+// interacts with scrollback, so it is pinned rather than corrected.
+func TestDeviationInsertLineGrowsBufferAndUnderflowsCursorReport(t *testing.T) {
+	term := newTestTerm(t, 20, 6)
+	term.feed("one\r\ntwo\r\nthree")
+
+	before := term.GetActiveBuffer().Height()
+	term.feed("\x1b[1;1H\x1b[99L")
+	after := term.GetActiveBuffer().Height()
+
+	assert.Greater(t, after, before, "buffer grew by the inserted lines")
+
+	term.feed("\x1b[6n")
+	assert.Equal(t, "\x1b[65534;1R", term.reply(), "cursor row underflowed")
+}

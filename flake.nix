@@ -18,6 +18,10 @@
             gopls
             delve
             goreleaser
+
+            # conformance and performance test suites
+            python3
+            goperf # provides benchstat
           ];
 
           buildInputs = with pkgs; [
