@@ -3,15 +3,14 @@ version: 2
 # The X11 headers cgo needs are installed by the release workflow instead of
 # here, so that a local `goreleaser build --snapshot` does not try to sudo apt.
 before:
-    hooks:
+  hooks:
     - go mod vendor
 builds:
-  -
-    id: darktile
+  - id: darktile
     main: ./cmd/darktile
     binary: darktile
     ldflags:
-    - "-X github.com/liamg/darktile/internal/app/darktile/version.Version={{.Version}}"
+      - "-X github.com/liamg/darktile/internal/app/darktile/version.Version={{.Version}}"
     env:
       - GOFLAGS=-mod=vendor
     goos:
@@ -20,21 +19,36 @@ builds:
       - amd64
 
 checksum:
-  name_template: '{{ .ProjectName }}_checksums.txt'
+  name_template: "{{ .ProjectName }}_checksums.txt"
 
 snapshot:
   version_template: "{{ .Tag }}-next"
 
 changelog:
-  sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
+      - "^docs:"
+      - "^test:"
+  groups:
+    - title: Features
+      regexp: '^feat(\(.+\))?!?:'
+      order: 0
+    - title: Bug fixes
+      regexp: '^fix(\(.+\))?!?:'
+      order: 1
+    - title: Performance
+      regexp: '^perf(\(.+\))?!?:'
+      order: 2
+    - title: Build and CI
+      regexp: '^(build|ci)(\(.+\))?!?:'
+      order: 3
+    # Anything without a conventional commit prefix, including the history
+    # inherited from upstream.
+    - title: Other
+      order: 999
 
 archives:
-  -
-    formats: [binary]
+  - formats: [binary]
     name_template: "{{ .Binary}}-{{ .Os }}-{{ .Arch }}"
 
 # The repository is deliberately not pinned here: GoReleaser infers it from the
