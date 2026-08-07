@@ -132,6 +132,9 @@ jobs:
         working-directory: dist/macos
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This job never checks out, so gh has no remote to infer the target
+          # repository from.
+          GH_REPO: ${{ github.repository }}
         run: |
           sha256sum goatty-darwin-* > goatty_macos_checksums.txt
           gh release upload "$GITHUB_REF_NAME" goatty-darwin-* goatty_macos_checksums.txt
