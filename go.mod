@@ -13,7 +13,7 @@ require (
 	golang.org/x/image v0.44.0
 	golang.org/x/term v0.45.0
 	gopkg.in/yaml.v2 v2.4.0
-	mvdan.cc/xurls v1.1.0
+	mvdan.cc/xurls/v2 v2.6.0
 )
 
 require (
@@ -27,7 +27,6 @@ require (
 	github.com/jezek/xgb v1.1.1 // indirect
 	github.com/lxn/walk v0.0.0-20191128110447-55ccb3a9f5c1 // indirect
 	github.com/lxn/win v0.0.0-20191128105842-2da648fda5b4 // indirect
-	github.com/mvdan/xurls v1.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	golang.org/x/sync v0.22.0 // indirect
