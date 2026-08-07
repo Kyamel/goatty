@@ -67,8 +67,16 @@
 
             # ebiten from v2.9 on resolves libGL with dlopen instead of linking
             # it, so having these as buildInputs is not enough to run anything.
+            #
+            # MESA_PREFIX is for the render goldens: on NixOS the drivers behind
+            # that libGL come from /run/opengl-driver, which exists nowhere else,
+            # so on a CI runner there is nothing for libglvnd to load. The script
+            # points at this mesa when it launches darktile. It cannot be
+            # exported here as LIBGL_DRIVERS_PATH, because Xvfb would pick it up
+            # too and crash mixing it with the system mesa.
             shellHook = ''
               export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath graphicsLibs}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+              export MESA_PREFIX="${pkgs.mesa}"
             '';
           };
         });

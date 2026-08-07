@@ -140,6 +140,22 @@ export HOME="$workdir/home"
 export ENV=/dev/null
 mkdir -p "$XDG_CONFIG_HOME" "$HOME"
 
+# The goldens are compared pixel for pixel, so the renderer has to be the same
+# everywhere: llvmpipe is, a GPU driver is not. MESA_PREFIX comes from the
+# devShell and is what makes this work off NixOS, where there is no
+# /run/opengl-driver for libglvnd to load drivers from.
+#
+# This goes on darktile's own command line rather than in the environment
+# because Xvfb must not inherit it -- it links the system mesa, and mixing the
+# two segfaults the X server before darktile ever starts.
+gl_env=(env LIBGL_ALWAYS_SOFTWARE=1)
+if [[ -n "${MESA_PREFIX:-}" ]]; then
+    gl_env+=(
+        "LIBGL_DRIVERS_PATH=$MESA_PREFIX/lib/dri"
+        "__EGL_VENDOR_LIBRARY_DIRS=$MESA_PREFIX/share/glvnd/egl_vendor.d"
+    )
+fi
+
 failed=0
 changed=()
 
@@ -163,7 +179,7 @@ for scene in "${scenes[@]}"; do
     rm -f "$shot"
 
     xvfb-run -a -s "-screen 0 1024x768x24" \
-        "$binary" --shell "$script" \
+        "${gl_env[@]}" "$binary" --shell "$script" \
         --screenshot-after-ms "$SCREENSHOT_MS" \
         --screenshot-filename "$shot" </dev/null >"$workdir/$scene.log" 2>&1 || true
 

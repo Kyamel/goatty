@@ -13,6 +13,11 @@
 
 set -euo pipefail
 
+# The baseline is a sorted file that comm reads back, so the collation has to be
+# the same wherever this runs. Under en_US the test names order differently than
+# under C, and comm then reports the whole file as new failures.
+export LC_ALL=C
+
 cd "$(dirname "$0")/.."
 
 BASELINE="internal/app/darktile/termutil/testdata/esctest-baseline.txt"
