@@ -6,6 +6,8 @@ before:
   hooks:
     - go mod vendor
 builds:
+  # macOS uses CGO/AppKit and is built natively by release.yml, then attached
+  # to the release after this Linux GoReleaser job succeeds.
   - id: darktile
     main: ./cmd/darktile
     binary: darktile

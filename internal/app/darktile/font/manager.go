@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/liamg/darktile/internal/app/darktile/packed"
-	"github.com/liamg/fontinfo"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 )
@@ -89,16 +88,29 @@ func (m *Manager) SetSize(size float64) error {
 	return nil
 }
 
-func (m *Manager) loadFontFace(path string) (font.Face, error) {
+func (m *Manager) loadFontFace(path string, index int) (font.Face, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
-	fnt, err := opentype.ParseReaderAt(f)
+	collection, err := opentype.ParseCollectionReaderAt(f)
 	if err != nil {
+		_ = f.Close()
 		return nil, err
 	}
-	return m.createFace(fnt)
+	fnt, err := collection.Font(index)
+	if err != nil {
+		_ = f.Close()
+		return nil, err
+	}
+	face, err := m.createFace(fnt)
+	if err != nil {
+		_ = f.Close()
+		return nil, err
+	}
+	// sfnt keeps the ReaderAt for lazy glyph loading, so f must stay open for
+	// as long as the face is in use.
+	return face, nil
 }
 
 func (m *Manager) createFace(f *opentype.Font) (font.Face, error) {
@@ -117,7 +129,7 @@ func (m *Manager) SetFontByFamilyName(name string) error {
 		return m.loadDefaultFonts()
 	}
 
-	fonts, err := fontinfo.Match(fontinfo.MatchFamily(name))
+	fonts, err := findFontCandidates(name)
 	if err != nil {
 		return err
 	}
@@ -126,25 +138,30 @@ func (m *Manager) SetFontByFamilyName(name string) error {
 		return fmt.Errorf("could not find font with family '%s'", name)
 	}
 
+	m.regularFace = nil
+	m.boldFace = nil
+	m.italicFace = nil
+	m.boldItalicFace = nil
+
 	for _, fontMeta := range fonts {
-		switch StyleName(fontMeta.Style) {
+		switch fontMeta.Style {
 		case StyleRegular:
-			m.regularFace, err = m.loadFontFace(fontMeta.Path)
+			m.regularFace, err = m.loadFontFace(fontMeta.Path, fontMeta.Index)
 			if err != nil {
 				return err
 			}
 		case StyleBold:
-			m.boldFace, err = m.loadFontFace(fontMeta.Path)
+			m.boldFace, err = m.loadFontFace(fontMeta.Path, fontMeta.Index)
 			if err != nil {
 				return err
 			}
 		case StyleItalic:
-			m.italicFace, err = m.loadFontFace(fontMeta.Path)
+			m.italicFace, err = m.loadFontFace(fontMeta.Path, fontMeta.Index)
 			if err != nil {
 				return err
 			}
 		case StyleBoldItalic:
-			m.boldItalicFace, err = m.loadFontFace(fontMeta.Path)
+			m.boldItalicFace, err = m.loadFontFace(fontMeta.Path, fontMeta.Index)
 			if err != nil {
 				return err
 			}

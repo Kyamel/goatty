@@ -24,12 +24,15 @@ Darktile is a GPU rendered terminal emulator designed for tiling window managers
 
 ## Installation
 
-Install dependencies:
+On Linux, install the build dependencies:
 
 - `xorg-dev`
 - `libgl1-mesa-dev`
 
-Grab a binary from the [latest release](https://github.com/liamg/darktile/releases/latest), `chmod +x` it and place it in your `$PATH`.
+Grab the Linux or macOS binary for your architecture from the [latest
+release](https://github.com/liamg/darktile/releases/latest), `chmod +x` it and
+place it in your `$PATH`. macOS binaries are currently unsigned, so Gatekeeper
+may require you to approve the binary the first time it runs.
 
 If you're too lazy to do the above and you like to live life on the edge, you can pipe this script to sudo:
 
@@ -39,7 +42,10 @@ curl -s "https://raw.githubusercontent.com/liamg/darktile/main/scripts/install.s
 
 ## Configuration
 
-Configuration files should be created in `$XDG_CONFIG_HOME/darktile/` if the variable is defined, otherwise in `$HOME/.config/darktile/`. 
+Configuration files use the operating system's standard user configuration
+directory. This is `$XDG_CONFIG_HOME/darktile/` (or
+`$HOME/.config/darktile/`) on Linux and
+`$HOME/Library/Application Support/darktile/` on macOS.
 
 If you wish, you can create an example config file as a starting point using `darktile --rewrite-config`.
 
@@ -107,6 +113,8 @@ cursorbackground: '#c5c8c6'
 
 The name changed as a result of a near-complete rewrite of Aminal. Also, Google's "did you mean animal?" was getting pretty annoying.
 
-### Did Darktile drop Windows/OSX support?
+### Which operating systems are supported?
 
-While the project likely won't need much work to build on Windows/OSX, the focus is to develop Darktile for tiling window managers under Linux. If you'd like to get Darktile working for other environments, pull requests are always very welcome, especially when preceded by issues/discussion.
+Linux and macOS are built and tested in CI. Releases include native macOS
+binaries for Apple Silicon and Intel. Windows is not supported because the
+terminal process layer still requires a ConPTY implementation.

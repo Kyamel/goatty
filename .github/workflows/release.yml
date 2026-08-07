@@ -12,8 +12,68 @@ on:
 # on an ordinary distro. ebiten still needs cgo and the X11 headers on Linux.
 
 jobs:
-  build:
+  macos:
+    name: Build macOS (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+          - arch: amd64
+            runner: macos-15-intel
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "^1.26"
+
+      - name: Check VERSION matches the tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          declared=$(cat VERSION)
+          if [ "${GITHUB_REF_NAME#v}" != "$declared" ]; then
+            echo "tag $GITHUB_REF_NAME does not match VERSION ($declared)" >&2
+            exit 1
+          fi
+
+      - name: Build and smoke test
+        env:
+          GOFLAGS: -mod=vendor
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then
+            version="$(cat VERSION)-next"
+          fi
+          mkdir -p dist
+          go test ./...
+          go build -trimpath \
+            -ldflags="-s -w -X github.com/liamg/darktile/internal/app/darktile/version.Version=$version" \
+            -o "dist/darktile-darwin-${{ matrix.arch }}" ./cmd/darktile
+          go build -trimpath -o dist/darktile-headless ./cmd/darktile-headless
+          "dist/darktile-darwin-${{ matrix.arch }}" --version
+          font_output=$("dist/darktile-darwin-${{ matrix.arch }}" list-fonts)
+          test -n "$font_output"
+          python3 -c 'import subprocess; subprocess.run(["dist/darktile-headless", "--command", "exit 0\n"], check=True, timeout=20)'
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-darwin-${{ matrix.arch }}
+          path: dist/darktile-darwin-${{ matrix.arch }}
+          if-no-files-found: error
+
+  release:
     name: Releasing Darktile
+    needs: macos
     runs-on: ubuntu-latest
 
     permissions:
@@ -53,3 +113,24 @@ jobs:
           args: ${{ github.event_name == 'workflow_dispatch' && 'release --snapshot --clean' || 'release --clean' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-macos:
+    name: Publish macOS binaries
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [macos, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: release-darwin-*
+          path: dist/macos
+          merge-multiple: true
+      - name: Upload macOS assets
+        working-directory: dist/macos
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sha256sum darktile-darwin-* > darktile_macos_checksums.txt
+          gh release upload "$GITHUB_REF_NAME" darktile-darwin-* darktile_macos_checksums.txt

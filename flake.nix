@@ -12,15 +12,16 @@
       systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
 
-      graphicsLibsFor = pkgs: with pkgs; [
-        libGL
-        libx11
-        libxcursor
-        libxi
-        libxinerama
-        libxrandr
-        libxxf86vm
-      ];
+      graphicsLibsFor = pkgs:
+        pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux (with pkgs; [
+          libGL
+          libx11
+          libxcursor
+          libxi
+          libxinerama
+          libxrandr
+          libxxf86vm
+        ]);
 
       # A flake carries no tag information: `self` exposes rev, shortRev and
       # revCount, and nothing else. So the released version is kept in a file
@@ -53,10 +54,11 @@
       devShells = forAllSystems (pkgs:
         let
           graphicsLibs = graphicsLibsFor pkgs;
+          isLinux = pkgs.stdenv.hostPlatform.isLinux;
         in
         {
           default = pkgs.mkShell {
-            nativeBuildInputs = with pkgs; [
+            nativeBuildInputs = (with pkgs; [
               go
               pkg-config
               git
@@ -69,10 +71,11 @@
               python3
               goperf # provides benchstat
               graphviz # pprof renders call graphs through dot
+              imagemagick # render goldens need image comparisons
+            ]) ++ pkgs.lib.optionals isLinux (with pkgs; [
               xvfb-run # render goldens need a display
-              imagemagick # and a way to diff the screenshots
               util-linux # flock, so two render runs cannot stomp each other
-            ];
+            ]);
 
             buildInputs = graphicsLibs;
 
@@ -85,7 +88,7 @@
             # points at this mesa when it launches darktile. It cannot be
             # exported here as LIBGL_DRIVERS_PATH, because Xvfb would pick it up
             # too and crash mixing it with the system mesa.
-            shellHook = ''
+            shellHook = pkgs.lib.optionalString isLinux ''
               export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath graphicsLibs}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
               export MESA_PREFIX="${pkgs.mesa}"
             '';

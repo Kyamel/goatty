@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/liamg/fontinfo"
+	darktilefont "github.com/liamg/darktile/internal/app/darktile/font"
 	"github.com/spf13/cobra"
 )
 
@@ -17,13 +17,13 @@ var listFontsCmd = &cobra.Command{
 	SilenceUsage: true,
 	RunE: func(c *cobra.Command, args []string) error {
 
-		fonts, err := fontinfo.Match(fontinfo.MatchStyle("Regular"))
+		fonts, err := darktilefont.ListFamilies()
 		if err != nil {
 			return err
 		}
 
-		for _, font := range fonts {
-			fmt.Println(font.Family)
+		for _, family := range fonts {
+			fmt.Println(family)
 		}
 		return nil
 	},

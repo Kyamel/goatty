@@ -21,6 +21,46 @@ jobs:
       - run: nix develop --command go vet ./...
       - run: nix develop --command go test ./...
 
+  macos:
+    name: macOS (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+          - arch: amd64
+            runner: macos-15-intel
+    env:
+      GOFLAGS: -mod=vendor
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "^1.26"
+      - run: go version
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./...
+      - name: Build macOS binaries
+        run: |
+          mkdir -p dist
+          go build -trimpath -o "dist/darktile-darwin-${{ matrix.arch }}" ./cmd/darktile
+          go build -trimpath -o dist/darktile-headless ./cmd/darktile-headless
+      - name: Smoke test CLI and PTY
+        run: |
+          "dist/darktile-darwin-${{ matrix.arch }}" --version
+          font_output=$("dist/darktile-darwin-${{ matrix.arch }}" list-fonts)
+          test -n "$font_output"
+          python3 -c 'import subprocess; subprocess.run(["dist/darktile-headless", "--command", "exit 0\n"], check=True, timeout=20)'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: darktile-darwin-${{ matrix.arch }}-ci
+          path: dist/darktile-darwin-${{ matrix.arch }}
+          if-no-files-found: error
+
   vulnerabilities:
     name: Vulnerabilities
     runs-on: ubuntu-latest
